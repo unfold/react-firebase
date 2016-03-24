@@ -21,7 +21,7 @@ export default (mapPropsToSubscriptions, mapFirebaseToProps, mergeProps, options
   const mapFirebase = mapFirebaseToProps || defaultMapFirebaseToProps;
 
   const finalMergeProps = mergeProps || defaultMergeProps;
-  const { pure = true, keepalive = 2500 } = options;
+  const { pure = true, keepalive = 0 } = options;
 
   const computeSubscriptions = props => {
     const subscriptions = mapSubscriptions(props);
@@ -142,9 +142,13 @@ export default (mapPropsToSubscriptions, mapFirebaseToProps, mergeProps, options
         const subscriptionKeys = keys(subscriptions);
 
         this.listeners = reduce(subscriptionKeys, (listeners, key) => {
-          const listener = listeners[key];
+          const unsubscribeKey = () => listeners[key].unsubscribe();
 
-          setTimeout(() => listener.unsubscribe(), keepalive);
+          if (keepalive) {
+            setTimeout(unsubscribeKey, keepalive);
+          } else {
+            unsubscribeKey();
+          }
 
           return omit(listeners, key);
         }, this.listeners);
