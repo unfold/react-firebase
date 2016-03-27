@@ -16,9 +16,7 @@
     "url": "https://github.com/unfold/react-firebase.git"
   },
   "files": [
-    "dist",
-    "lib",
-    "src"
+    "lib"
   ],
   "keywords": [
     "react",
@@ -32,6 +30,7 @@
   },
   "homepage": "https://github.com/unfold/react-firebase",
   "devDependencies": {
+    "babel-cli": "6.6.5",
     "babel-eslint": "5.0.0",
     "babel-loader": "6.2.4",
     "eslint": "2.4.0",
