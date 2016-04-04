@@ -1,14 +1,14 @@
 import { Component, PropTypes, Children } from 'react';
-import Firebase from 'firebase';
+import firebaseShape from '../utils/firebaseShape';
 
 export default class Provider extends Component {
   static propTypes = {
-    firebase: PropTypes.instanceOf(Firebase),
+    firebase: firebaseShape,
     children: PropTypes.element.isRequired,
   }
 
   static childContextTypes = {
-    firebase: PropTypes.instanceOf(Firebase),
+    firebase: firebaseShape,
   }
 
   getChildContext() {
