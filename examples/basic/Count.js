@@ -17,8 +17,8 @@ Count.propTypes = {
 };
 
 const mapPropsToSubscriptions = () => ({ count: 'count' });
-const mapRefToProps = firebase => ({
+const mapFirebaseToProps = firebase => ({
   setCount: count => firebase.child('count').set(count),
 });
 
-export default connect(mapPropsToSubscriptions, mapRefToProps)(Count);
+export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(Count);
