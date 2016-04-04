@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import Count from './count';
+import Count from './Count';
 import createDemoRef from '../createDemoRef';
 
 const firebase = createDemoRef('basic');
