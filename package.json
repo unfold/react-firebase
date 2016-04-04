@@ -4,7 +4,7 @@
   "description": "React bindings for Firebase",
   "main": "./lib/index.js",
   "scripts": {
-    "build": "babel src --out-dir lib",
+    "build": "babel src --ignore src/**/*-test.js --out-dir lib",
     "lint": "eslint src examples",
     "prepublish": "npm run build",
     "start": "babel-node examples/server",
