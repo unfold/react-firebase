@@ -53,8 +53,10 @@
     "webpack-dev-middleware": "^1.6.1"
   },
   "dependencies": {
+    "firebase": "^2.4.2",
     "invariant": "^2.0.0",
-    "lodash": "^4.2.0"
+    "lodash": "^4.2.0",
+    "react": "^0.14.8"
   },
   "peerDependencies": {
     "firebase": "^2.4.2",

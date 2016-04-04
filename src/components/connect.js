@@ -1,9 +1,9 @@
 import { Component, createElement } from 'react';
 import { isFunction, isPlainObject, keys, pick, omit, reduce } from 'lodash';
+import invariant from 'invariant';
 import expandObject from '../utils/expandObject';
 import flattenObject from '../utils/flattenObject';
 import getDisplayName from '../utils/getDisplayName';
-import invariant from 'invariant';
 import shallowEqual from '../utils/shallowEqual';
 import firebaseShape from '../utils/firebaseShape';
 
