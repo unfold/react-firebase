@@ -1,14 +1,14 @@
-import React from 'react';
-import { render } from 'react-dom';
-import { Provider } from 'react-firebase';
-import createDemoRef from '../createDemoRef';
+import React from 'react'
+import { render } from 'react-dom'
+import { Provider } from '../../src'
+import initializeDemoApp from '../initializeDemoApp'
 
-import UserList from './UserList';
-import AddUser from './AddUser';
-import TaskList from './TaskList';
+import UserList from './UserList'
+import AddUser from './AddUser'
+import TaskList from './TaskList'
 
-const firebase = createDemoRef('complex');
-firebase.set({
+const firebase = initializeDemoApp()
+firebase.database().ref().set({
   users: {
     frank: {
       name: 'Frank',
@@ -47,7 +47,7 @@ firebase.set({
       completed: true,
     },
   },
-});
+})
 
 const App = () => (
   <div>
@@ -61,10 +61,10 @@ const App = () => (
     <h2>Outside tasks</h2>
     <TaskList outside />
   </div>
-);
+)
 
 render((
   <Provider firebase={firebase}>
     <App />
   </Provider>
-), document.getElementById('example'));
+), document.getElementById('example'))

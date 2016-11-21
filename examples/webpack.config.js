@@ -1,24 +1,23 @@
-import webpack from 'webpack';
-import { createHash } from 'crypto';
-import { hostname } from 'os';
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import webpack from 'webpack'
+import { createHash } from 'crypto'
+import { hostname } from 'os'
+import { readdirSync, statSync } from 'fs'
+import { join } from 'path'
 
-const clientHash = createHash('md5').update(hostname()).digest('hex');
-const FIREBASE_URL = `https://unfold-sandbox.firebaseio.com/react-firebase-examples/${clientHash}`;
+const SANDBOX_PATH = createHash('md5').update(hostname()).digest('hex')
 
 const entries = readdirSync(__dirname).reduce((result, filename) => {
-  const filepath = join(__dirname, filename);
+  const filepath = join(__dirname, filename)
 
   if (statSync(filepath).isDirectory()) {
     return {
       ...result,
       [filename]: filepath,
-    };
+    }
   }
 
-  return result;
-}, {});
+  return result
+}, {})
 
 module.exports = {
   devtool: 'inline-source-map',
@@ -46,8 +45,8 @@ module.exports = {
   plugins: [
     new webpack.optimize.CommonsChunkPlugin('shared.js'),
     new webpack.DefinePlugin({
-      'process.env.FIREBASE_URL': JSON.stringify(FIREBASE_URL),
+      'process.env.SANDBOX_PATH': JSON.stringify(SANDBOX_PATH),
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     }),
   ],
-};
+}

@@ -1,5 +1,5 @@
-import { PropTypes } from 'react';
+import { PropTypes } from 'react'
 
 export default PropTypes.shape({
-  child: PropTypes.func.isRequired,
-});
+  database: PropTypes.func.isRequired,
+})

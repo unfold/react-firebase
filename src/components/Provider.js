@@ -1,5 +1,5 @@
-import { Component, PropTypes, Children } from 'react';
-import firebaseShape from '../utils/firebaseShape';
+import { Component, PropTypes, Children } from 'react'
+import firebaseShape from '../utils/firebaseShape'
 
 export default class Provider extends Component {
   static propTypes = {
@@ -14,10 +14,10 @@ export default class Provider extends Component {
   getChildContext() {
     return {
       firebase: this.props.firebase,
-    };
+    }
   }
 
   render() {
-    return Children.only(this.props.children);
+    return Children.only(this.props.children)
   }
 }

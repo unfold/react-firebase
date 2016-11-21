@@ -1,16 +1,16 @@
-import React, { PropTypes } from 'react';
-import { map } from 'lodash';
-import { connect } from 'react-firebase';
+import React, { PropTypes } from 'react'
+import { map } from 'lodash'
+import { connect } from '../../src'
 
-import TaskSummary from './TaskSummary';
+import TaskSummary from './TaskSummary'
 
 const TaskListItem = ({ taskId }) => (
   <li><TaskSummary taskId={taskId} /></li>
-);
+)
 
 TaskListItem.propTypes = {
   taskId: PropTypes.string.isRequired,
-};
+}
 
 const TaskList = ({ tasks }) => (
   <div>
@@ -18,22 +18,22 @@ const TaskList = ({ tasks }) => (
       {map(tasks, (task, key) => <TaskListItem key={key} taskId={key} />)}
     </ul>
   </div>
-);
+)
 
 TaskList.propTypes = {
   tasks: PropTypes.object,
-};
+}
 
 const mapPropsToSubscriptions = ({ outside }) => {
   if (outside) {
     return {
-      tasks: firebase => firebase.child('tasks').orderByChild('outside').equalTo(true),
-    };
+      tasks: database => database.ref('tasks').orderByChild('outside').equalTo(true),
+    }
   }
 
   return {
     tasks: 'tasks',
-  };
-};
+  }
+}
 
-export default connect(mapPropsToSubscriptions)(TaskList);
+export default connect(mapPropsToSubscriptions)(TaskList)

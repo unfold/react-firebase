@@ -1,114 +1,129 @@
-import 'jsdom-global/register';
-import React from 'react';
-import test from 'tape';
-import { findDOMNode, unmountComponentAtNode } from 'react-dom';
-import { renderIntoDocument } from 'react-addons-test-utils';
+import 'jsdom-global/register'
+import React from 'react'
+import test from 'tape'
+import { findDOMNode, unmountComponentAtNode } from 'react-dom'
+import { renderIntoDocument } from 'react-addons-test-utils'
 
-import connect from '../connect';
+import connect from '../connect'
+import firebaseShape from '../../utils/firebaseShape'
 
-test('Should throw if no firebase instance was found in either props or context', assert => {
+const createMockFirebase = databaseProps => ({
+  database: () => databaseProps,
+  name: '[MOCK]',
+})
+
+const FirebaseReceiver = ({ firebase }) => <div>{firebase.name}</div>
+FirebaseReceiver.propTypes = { firebase: firebaseShape }
+
+test('Should throw if no firebase app instance was found in either props or context', assert => {
   assert.throws(() => {
-    const WrappedComponent = connect()('div');
+    const WrappedComponent = connect()(FirebaseReceiver)
 
-    renderIntoDocument(<WrappedComponent />);
-  }, /Could not find "firebase"/);
+    renderIntoDocument(<WrappedComponent />)
+  }, /Could not find "firebase"/)
 
-  assert.end();
-});
+  assert.end()
+})
 
 test('Should subscribe to a single path', assert => {
-  const mockFirebase = {
-    child: path => {
-      assert.equal(path, 'foo');
+  const mockDatabase = {
+    ref: path => {
+      assert.equal(path, 'foo')
 
-      return mockFirebase;
+      return mockDatabase
     },
     on: (event, callback) => {
-      assert.equal(event, 'value');
+      assert.equal(event, 'value')
 
       const mockSnapshot = {
         val: () => 'foo changed',
-      };
+      }
 
-      callback(mockSnapshot);
+      callback(mockSnapshot)
     },
-  };
+  }
 
-  const mapPropsToSubscriptions = () => ({ foo: 'foo' });
-  const WrappedComponent = connect(mapPropsToSubscriptions)('div');
-  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />);
+  const mockFirebase = createMockFirebase(mockDatabase)
 
-  assert.deepEqual(container.state.subscriptionsState, { foo: 'foo changed' });
-  assert.end();
-});
+  const mapPropsToSubscriptions = () => ({ foo: 'foo' })
+  const WrappedComponent = connect(mapPropsToSubscriptions)(FirebaseReceiver)
+  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+
+  assert.deepEqual(container.state.subscriptionsState, { foo: 'foo changed' })
+  assert.end()
+})
 
 test('Should subscribe to a query', assert => {
-  const mockFirebase = {
-    child: () => {
-      assert.fail();
+  const mockDatabase = {
+    ref: () => {
+      assert.fail()
 
-      return mockFirebase;
+      return mockDatabase
     },
     startAt: priority => {
-      assert.equal(priority, 1);
+      assert.equal(priority, 1)
 
-      return mockFirebase;
+      return mockDatabase
     },
     on: (event, callback) => {
-      assert.equal(event, 'value');
+      assert.equal(event, 'value')
 
       const mockSnapshot = {
         val: () => 'bar changed',
-      };
+      }
 
-      callback(mockSnapshot);
+      callback(mockSnapshot)
     },
-  };
+  }
 
-  const mapPropsToSubscriptions = () => ({ bar: firebase => firebase.startAt(1) });
-  const WrappedComponent = connect(mapPropsToSubscriptions)('div');
-  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />);
+  const mockFirebase = createMockFirebase(mockDatabase)
 
-  assert.deepEqual(container.state.subscriptionsState, { bar: 'bar changed' });
-  assert.end();
-});
+  const mapPropsToSubscriptions = () => ({ bar: firebase => firebase.startAt(1) })
+  const WrappedComponent = connect(mapPropsToSubscriptions)(FirebaseReceiver)
+  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+
+  assert.deepEqual(container.state.subscriptionsState, { bar: 'bar changed' })
+  assert.end()
+})
 
 test('Should unsubscribe when component unmounts', assert => {
-  const mockFirebase = {
-    child: path => {
-      assert.equal(path, 'baz');
+  const mockDatabase = {
+    ref: path => {
+      assert.equal(path, 'baz')
 
-      return mockFirebase;
+      return mockDatabase
     },
     on: (event, callback) => {
-      assert.equal(event, 'value');
+      assert.equal(event, 'value')
 
       const mockSnapshot = {
         val: () => 'baz changed',
-      };
+      }
 
-      callback(mockSnapshot);
+      callback(mockSnapshot)
     },
     off: event => {
-      assert.equal(event, 'value');
+      assert.equal(event, 'value')
     },
-  };
+  }
 
-  const mapPropsToSubscriptions = () => ({ baz: 'baz' });
-  const WrappedComponent = connect(mapPropsToSubscriptions)('div');
-  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />);
+  const mockFirebase = createMockFirebase(mockDatabase)
 
-  assert.deepEqual(container.state.subscriptionsState, { baz: 'baz changed' });
+  const mapPropsToSubscriptions = () => ({ baz: 'baz' })
+  const WrappedComponent = connect(mapPropsToSubscriptions)(FirebaseReceiver)
+  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
 
-  unmountComponentAtNode(findDOMNode(container).parentNode);
+  assert.deepEqual(container.state.subscriptionsState, { baz: 'baz changed' })
 
-  assert.end();
-});
+  unmountComponentAtNode(findDOMNode(container).parentNode)
 
-test('Should subscribe to nested paths');
-test('Should map firebase to props');
-test('Should keep connection to Firebase alive when specified and ignore later updates');
-test('Should update subscriptions when props change');
-test('Should not re-render if options.pure is true');
-test('Should re-render if options.pure is false');
-test('Should merge using mergeProps function');
+  assert.end()
+})
+
+test('Should subscribe to nested paths')
+test('Should map firebase to props')
+test('Should keep connection to Firebase alive when specified and ignore later updates')
+test('Should update subscriptions when props change')
+test('Should not re-render if options.pure is true')
+test('Should re-render if options.pure is false')
+test('Should merge using mergeProps function')

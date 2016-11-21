@@ -1,4 +1,3 @@
-import Provider from './components/Provider';
-import connect from './components/connect';
-
-export { Provider, connect };
+export Provider from './components/Provider'
+export connect from './components/connect'
+export firebaseShape from './utils/firebaseShape'
