@@ -15,7 +15,7 @@ npm install --save react-firebase
 
 ### `<Provider firebase>`
 
-Makes a Firebase App refence available to the `connect()` calls in the component hierarchy below. Normally, you can’t use `connect()` without wrapping the root component in `<Provider>`.
+Makes a Firebase App reference available to the `connect()` calls in the component hierarchy below. Normally, you can’t use `connect()` without wrapping the root component in `<Provider>`.
 
 If you *really* need to, you can manually pass `firebase` as a prop to every `connect()`ed component, but we only recommend to do this for stubbing `firebase` in unit tests, or in non-fully-React codebases. Normally, you should just use `<Provider>`.
 
