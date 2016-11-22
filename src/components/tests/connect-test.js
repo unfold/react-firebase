@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import 'jsdom-global/register'
 import React from 'react'
 import test from 'tape'

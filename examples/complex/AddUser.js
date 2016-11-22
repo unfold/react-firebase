@@ -28,8 +28,8 @@ class AddUser extends Component {
     const { name } = this.state
 
     return (
-      <form onSubmit={::this.onSubmit}>
-        <input name="name" value={name} onChange={::this.onChange} />
+      <form onSubmit={event => this.onSubmit(event)}>
+        <input name="name" value={name} onChange={event => this.onChange(event)} />
         <button type="submit" disabled={!name}>Add user</button>
       </form>
     )

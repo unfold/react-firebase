@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
-import { connect } from '../../src'
 import { partial } from 'lodash'
+import { connect } from '../../src'
 
 const Count = ({ count, setCount }) => (
   <div>
