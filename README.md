@@ -1,11 +1,11 @@
 React Firebase
 ==============
 
-React bindings for [Firebase](https://www.firebase.com).
+React bindings for [Firebase](https://firebase.google.com).
 
 ## Installation
 
-React Firebase requires **React 0.14 or later.**
+React Firebase requires **React 15 and Firebase 3 or later.**
 
 ```
 npm install --save react-firebase
@@ -21,7 +21,7 @@ If you *really* need to, you can manually pass `firebase` as a prop to every `co
 
 #### Props
 
-* `firebase` (*[Firebase](https://www.firebase.com/docs/web/api/firebase/constructor.html)*): A Firebase reference.
+* `firebase` (*[Firebase App](https://firebase.google.com/docs/reference/js/firebase.app.App)*): A Firebase App reference.
 * `children` (*ReactElement*) The root of your component hierarchy.
 
 #### Example
@@ -29,7 +29,11 @@ If you *really* need to, you can manually pass `firebase` as a prop to every `co
 ##### Vanilla React
 
 ```js
-const firebase = new Firebase('https://my-firebase.firebaseio.com');
+import { initializeApp } from 'firebase'
+
+const firebase = initializeApp({
+  databaseURL: 'https://my-firebase.firebaseio.com'
+})
 
 ReactDOM.render(
   <Provider firebase={firebase}>
@@ -43,7 +47,7 @@ ReactDOM.render(
 
 Connects a React component to a Firebase refence.
 
-It does not modify the component class passed to it.  
+It does not modify the component class passed to it.
 Instead, it *returns* a new, connected component class, for you to use.
 
 #### Arguments
@@ -80,9 +84,9 @@ A React component class that injects subscriptions and actions into your compone
   > Note: The value of `todos` is analogous to https://my-firebase.firebaseio.com/todos.
 
 ```js
-function mapPropsToSubscriptions() {
-  return { todos: 'todos' }
-}
+const mapPropsToSubscriptions = () => ({
+  todos: 'todos'
+})
 
 export default connect(mapPropsToSubscriptions)(TodoApp)
 ```
@@ -90,17 +94,13 @@ export default connect(mapPropsToSubscriptions)(TodoApp)
 #####  Inject `todos` and a function that adds a new todo (`addTodo`)
 
 ```js
-function mapPropsToSubscriptions() {
-  return { todos: 'todos' }
-}
+const mapPropsToSubscriptions = () => ({
+  todos: 'todos'
+})
 
-function mapFirebaseToProps(firebase) {
-  return {
-    addTodo: function(todo) {
-      firebase.child('todos').push(todo)
-    }
-  }
-}
+const mapFirebaseToProps = ({ database }) => ({
+  addTodo: todo => database.ref('todos').push(todo)
+})
 
 export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
 ```
@@ -108,6 +108,12 @@ export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
 #####  Inject `todos`, `completedTodos` and a function that completes a todo (`completeTodo`)
 
 ```js
+const mapPropsToSubscriptions = () => ({
+  todos: 'todos',
+  completedTodos: ({ })
+})
+
+
 function mapPropsToSubscriptions() {
   return {
     todos: 'todos',

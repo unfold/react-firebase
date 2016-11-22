@@ -1,12 +1,12 @@
 import React from 'react'
 import { render } from 'react-dom'
-import { initializeDemoApp } from '../common'
+import { initializeDemoDatabase } from '../common'
 import Count from './Count'
 
-const firebase = initializeDemoApp()
+const database = initializeDemoDatabase()
 
 const App = () => (
-  <Count firebase={firebase} />
+  <Count database={database} />
 )
 
 render(<App />, document.getElementById('example'))

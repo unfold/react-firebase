@@ -20,8 +20,8 @@ Count.propTypes = {
 }
 
 const mapPropsToSubscriptions = () => ({ count: countPath })
-const mapFirebaseToProps = ({ database }) => ({
-  setCount: count => database().ref(countPath).set(count),
+const mapDatabaseToProps = database => ({
+  setCount: count => database.ref(countPath).set(count),
 })
 
-export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(Count)
+export default connect(mapPropsToSubscriptions, mapDatabaseToProps)(Count)

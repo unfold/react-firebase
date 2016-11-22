@@ -34,7 +34,7 @@ const mapPropsToSubscriptions = ({ outside }) => {
   }
 
   return {
-    tasks: 'tasks',
+    tasks: tasksPath,
   }
 }
 

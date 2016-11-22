@@ -7,28 +7,26 @@ import { findDOMNode, unmountComponentAtNode } from 'react-dom'
 import { renderIntoDocument } from 'react-addons-test-utils'
 
 import connect from '../connect'
-import firebaseShape from '../../utils/firebaseShape'
+import { databaseShape } from '../../utils/PropTypes'
 
-const createMockFirebase = databaseProps => ({
-  database: () => databaseProps,
-  name: '[MOCK]',
-})
+const DatabaseReceiver = () => <div />
+DatabaseReceiver.propTypes = { database: databaseShape }
 
-const FirebaseReceiver = ({ firebase }) => <div>{firebase.name}</div>
-FirebaseReceiver.propTypes = { firebase: firebaseShape }
-
-test('Should throw if no firebase app instance was found in either props or context', assert => {
+test('Should throw if no database instance was found in either props or context', assert => {
   assert.throws(() => {
-    const WrappedComponent = connect()(FirebaseReceiver)
+    const WrappedComponent = connect()(DatabaseReceiver)
 
     renderIntoDocument(<WrappedComponent />)
-  }, /Could not find "firebase"/)
+  }, /Could not find "database"/)
 
   assert.doesNotThrow(() => {
-    const mockFirebase = createMockFirebase()
-    const WrappedComponent = connect()(FirebaseReceiver)
+    const mockDatabase = {
+      ref: () => true,
+    }
 
-    renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+    const WrappedComponent = connect()(DatabaseReceiver)
+
+    renderIntoDocument(<WrappedComponent database={mockDatabase} />)
   }, /Could not find "firebase"/)
 
   assert.end()
@@ -52,11 +50,9 @@ test('Should subscribe to a single path', assert => {
     },
   }
 
-  const mockFirebase = createMockFirebase(mockDatabase)
-
   const mapPropsToSubscriptions = () => ({ foo: 'foo' })
-  const WrappedComponent = connect(mapPropsToSubscriptions)(FirebaseReceiver)
-  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+  const WrappedComponent = connect(mapPropsToSubscriptions)(DatabaseReceiver)
+  const container = renderIntoDocument(<WrappedComponent database={mockDatabase} />)
 
   assert.deepEqual(container.state.subscriptionsState, { foo: 'foo changed' })
   assert.end()
@@ -85,11 +81,9 @@ test('Should subscribe to a query', assert => {
     },
   }
 
-  const mockFirebase = createMockFirebase(mockDatabase)
-
   const mapPropsToSubscriptions = () => ({ bar: firebase => firebase.startAt(1) })
-  const WrappedComponent = connect(mapPropsToSubscriptions)(FirebaseReceiver)
-  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+  const WrappedComponent = connect(mapPropsToSubscriptions)(DatabaseReceiver)
+  const container = renderIntoDocument(<WrappedComponent database={mockDatabase} />)
 
   assert.deepEqual(container.state.subscriptionsState, { bar: 'bar changed' })
   assert.end()
@@ -116,11 +110,9 @@ test('Should unsubscribe when component unmounts', assert => {
     },
   }
 
-  const mockFirebase = createMockFirebase(mockDatabase)
-
   const mapPropsToSubscriptions = () => ({ baz: 'baz' })
-  const WrappedComponent = connect(mapPropsToSubscriptions)(FirebaseReceiver)
-  const container = renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+  const WrappedComponent = connect(mapPropsToSubscriptions)(DatabaseReceiver)
+  const container = renderIntoDocument(<WrappedComponent database={mockDatabase} />)
 
   assert.deepEqual(container.state.subscriptionsState, { baz: 'baz changed' })
 
