@@ -29,7 +29,7 @@ TaskList.propTypes = {
 const mapPropsToSubscriptions = ({ outside }) => {
   if (outside) {
     return {
-      tasks: database => database.ref(tasksPath).orderByChild('outside').equalTo(true),
+      tasks: ref => ref(tasksPath).orderByChild('outside').equalTo(true),
     }
   }
 

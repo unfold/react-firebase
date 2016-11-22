@@ -2,23 +2,23 @@ import invariant from 'invariant'
 import shallowCompare from 'react/lib/shallowCompare'
 import { Component, createElement } from 'react'
 import { isFunction, isPlainObject, keys, pick, omit, reduce } from 'lodash'
-import { databaseShape } from '../utils/PropTypes'
+import { firebaseAppShape } from '../utils/PropTypes'
 import expandObject from '../utils/expandObject'
 import flattenObject from '../utils/flattenObject'
 import getDisplayName from '../utils/getDisplayName'
 
 const defaultMapPropsToSubscriptions = props => ({}) // eslint-disable-line no-unused-vars
-const defaultMapDatabaseToProps = database => ({ database })
+const defaultMapFirebaseToProps = firebase => firebase
 const defaultMergeProps = (subscriptionProps, actionProps, parentProps) => ({
   ...parentProps,
   ...subscriptionProps,
   ...actionProps,
 })
 
-export default (mapPropsToSubscriptions, mapDatabaseToProps, mergeProps, options = {}) => {
+export default (mapPropsToSubscriptions, mapFirebaseToProps, mergeProps, options = {}) => {
   const shouldSubscribe = Boolean(mapPropsToSubscriptions)
   const mapSubscriptions = mapPropsToSubscriptions || defaultMapPropsToSubscriptions
-  const mapDatabase = mapDatabaseToProps || defaultMapDatabaseToProps
+  const mapFirebase = mapFirebaseToProps || defaultMapFirebaseToProps
   const finalMergeProps = mergeProps || defaultMergeProps
   const { pure = true, keepalive = 0 } = options
 
@@ -53,13 +53,13 @@ export default (mapPropsToSubscriptions, mapDatabaseToProps, mergeProps, options
       constructor(props, context) {
         super(props)
 
-        this.database = props.database || context.database
+        this.firebase = props.firebase || context.firebase
 
-        invariant(this.database,
-          'Could not find "database" in either the context or ' +
+        invariant(this.firebase,
+          'Could not find "firebase" in either the context or ' +
           `props of "${this.constructor.displayName}". ` +
           'Either wrap the root component in a <Provider>, ' +
-          `or explicitly pass "database" as a prop to "${this.constructor.displayName}".`
+          `or explicitly pass "firebase" as a prop to "${this.constructor.displayName}".`
         )
 
         this.state = {
@@ -100,8 +100,11 @@ export default (mapPropsToSubscriptions, mapDatabaseToProps, mergeProps, options
       }
 
       subscribe(subscriptions) {
+        const database = this.firebase.database()
+        const ref = path => database.ref(path)
+
         this.listeners = reduce(subscriptions, (listeners, path, key) => {
-          const subscriptionRef = isFunction(path) ? path(this.database) : this.database.ref(path)
+          const subscriptionRef = isFunction(path) ? path(ref) : ref(path)
 
           invariant(
             subscriptionRef.on,
@@ -157,7 +160,7 @@ export default (mapPropsToSubscriptions, mapDatabaseToProps, mergeProps, options
 
       render() {
         const subscriptionProps = expandObject(this.state.subscriptionsState)
-        const actionProps = mapDatabase(this.database, this.props)
+        const actionProps = mapFirebase(this.firebase, this.props)
         const props = computeMergedProps(subscriptionProps, actionProps, this.props)
 
         return createElement(WrappedComponent, props)
@@ -167,7 +170,7 @@ export default (mapPropsToSubscriptions, mapDatabaseToProps, mergeProps, options
     FirebaseConnect.WrappedComponent = WrappedComponent
     FirebaseConnect.displayName = `FirebaseConnect(${getDisplayName(WrappedComponent)})`
     FirebaseConnect.contextTypes = FirebaseConnect.propTypes = {
-      database: databaseShape,
+      firebase: firebaseAppShape,
     }
 
     return FirebaseConnect

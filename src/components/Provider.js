@@ -1,19 +1,19 @@
 import { Component, PropTypes, Children } from 'react'
-import { databaseShape } from '../utils/PropTypes'
+import { firebaseAppShape } from '../utils/PropTypes'
 
 export default class Provider extends Component {
   static propTypes = {
-    database: databaseShape,
+    firebase: firebaseAppShape,
     children: PropTypes.element.isRequired,
   }
 
   static childContextTypes = {
-    database: databaseShape,
+    firebase: firebaseAppShape,
   }
 
   getChildContext() {
     return {
-      database: this.props.database,
+      firebase: this.props.firebase,
     }
   }
 

@@ -1,15 +1,15 @@
 import React from 'react'
 import { render } from 'react-dom'
 import { Provider } from '../../src'
-import { initializeDemoDatabase, getSandBoxedPath } from '../common'
+import { initializeDemoApp, getSandBoxedPath } from '../common'
 import UserList from './UserList'
 import AddUser from './AddUser'
 import TaskList from './TaskList'
 
 const rootPath = getSandBoxedPath('complex')
 
-const database = initializeDemoDatabase()
-database.ref(rootPath).set({
+const firebase = initializeDemoApp()
+firebase.database().ref(rootPath).set({
   users: {
     frank: {
       name: 'Frank',
@@ -65,7 +65,7 @@ const App = () => (
 )
 
 render((
-  <Provider database={database}>
+  <Provider firebase={firebase}>
     <App />
   </Provider>
 ), document.getElementById('example'))

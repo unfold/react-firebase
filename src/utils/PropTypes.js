@@ -1,5 +1,5 @@
 import { PropTypes } from 'react'
 
-export const databaseShape = PropTypes.shape({ // eslint-disable-line import/prefer-default-export
-  ref: PropTypes.func.isRequired,
+export const firebaseAppShape = PropTypes.shape({ // eslint-disable-line import/prefer-default-export
+  database: PropTypes.func.isRequired,
 })
