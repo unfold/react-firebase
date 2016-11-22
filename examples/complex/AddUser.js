@@ -1,5 +1,8 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from '../../src'
+import { getSandBoxedPath } from '../common'
+
+const usersPath = getSandBoxedPath('complex/users')
 
 class AddUser extends Component {
   constructor(props) {
@@ -41,7 +44,7 @@ AddUser.propTypes = {
 }
 
 const mapFirebaseToProps = ({ database }) => ({
-  addUser: name => database().ref('users').push({ name }),
+  addUser: name => database().ref(usersPath).push({ name }),
 })
 
 export default connect(null, mapFirebaseToProps)(AddUser)

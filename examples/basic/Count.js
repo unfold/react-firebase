@@ -1,6 +1,9 @@
 import React, { PropTypes } from 'react'
 import { partial } from 'lodash'
 import { connect } from '../../src'
+import { getSandBoxedPath } from '../common'
+
+const countPath = getSandBoxedPath('count')
 
 const Count = ({ count, setCount }) => (
   <div>
@@ -16,9 +19,9 @@ Count.propTypes = {
   setCount: PropTypes.func.isRequired,
 }
 
-const mapPropsToSubscriptions = () => ({ count: 'count' })
+const mapPropsToSubscriptions = () => ({ count: countPath })
 const mapFirebaseToProps = ({ database }) => ({
-  setCount: count => database().ref('count').set(count),
+  setCount: count => database().ref(countPath).set(count),
 })
 
 export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(Count)

@@ -1,5 +1,8 @@
 import React, { PropTypes } from 'react'
 import { connect } from '../../src'
+import { getSandBoxedPath } from '../common'
+
+const tasksPath = getSandBoxedPath('complex/tasks')
 
 const TaskSummary = ({ name, description, flags = {} }) => (
   <span>{name} - {description} - {flags.outside ? '🌞' : '🏨'}</span>
@@ -12,10 +15,10 @@ TaskSummary.propTypes = {
 }
 
 const mapPropsToSubscriptions = ({ taskId }) => ({
-  name: `tasks/${taskId}/name`,
-  description: `tasks/${taskId}/description`,
+  name: `${tasksPath}/${taskId}/name`,
+  description: `${tasksPath}/${taskId}/description`,
   flags: {
-    outside: `tasks/${taskId}/outside`,
+    outside: `${tasksPath}/${taskId}/outside`,
   },
 })
 

@@ -1,14 +1,15 @@
 import React from 'react'
 import { render } from 'react-dom'
 import { Provider } from '../../src'
-import initializeDemoApp from '../initializeDemoApp'
-
+import { initializeDemoApp, getSandBoxedPath } from '../common'
 import UserList from './UserList'
 import AddUser from './AddUser'
 import TaskList from './TaskList'
 
+const rootPath = getSandBoxedPath('complex')
+
 const firebase = initializeDemoApp()
-firebase.database().ref().set({
+firebase.database().ref(rootPath).set({
   users: {
     frank: {
       name: 'Frank',

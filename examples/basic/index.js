@@ -1,7 +1,7 @@
 import React from 'react'
 import { render } from 'react-dom'
+import { initializeDemoApp } from '../common'
 import Count from './Count'
-import initializeDemoApp from '../initializeDemoApp'
 
 const firebase = initializeDemoApp()
 

@@ -1,8 +1,10 @@
 import React, { PropTypes } from 'react'
 import { map } from 'lodash'
 import { connect } from '../../src'
-
+import { getSandBoxedPath } from '../common'
 import TaskSummary from './TaskSummary'
+
+const complexPath = getSandBoxedPath('complex')
 
 const UserTaskSummary = ({ tasks }) => (
   <span>
@@ -36,6 +38,6 @@ UserList.propTypes = {
   users: PropTypes.object,
 }
 
-const mapPropsToSubscriptions = () => ({ users: 'users' })
+const mapPropsToSubscriptions = () => ({ users: `${complexPath}/users` })
 
 export default connect(mapPropsToSubscriptions)(UserList)
