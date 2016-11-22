@@ -24,6 +24,13 @@ test('Should throw if no firebase app instance was found in either props or cont
     renderIntoDocument(<WrappedComponent />)
   }, /Could not find "firebase"/)
 
+  assert.doesNotThrow(() => {
+    const mockFirebase = createMockFirebase()
+    const WrappedComponent = connect()(FirebaseReceiver)
+
+    renderIntoDocument(<WrappedComponent firebase={mockFirebase} />)
+  }, /Could not find "firebase"/)
+
   assert.end()
 })
 
