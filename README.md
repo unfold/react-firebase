@@ -15,7 +15,7 @@ npm install --save react-firebase
 
 ### `<Provider database>`
 
-Makes a Firebase refence available to the `connect()` calls in the component hierarchy below. Normally, you can’t use `connect()` without wrapping the root component in `<Provider>`.
+Makes a Firebase Database refence available to the `connect()` calls in the component hierarchy below. Normally, you can’t use `connect()` without wrapping the root component in `<Provider>`.
 
 If you *really* need to, you can manually pass `database` as a prop to every `connect()`ed component, but we only recommend to do this for stubbing `database` in unit tests, or in non-fully-React codebases. Normally, you should just use `<Provider>`.
 
@@ -45,7 +45,7 @@ ReactDOM.render(
 
 ### `connect([mapPropsToSubscriptions], [mapDatabaseToProps], [mergeProps], [options])`
 
-Connects a React component to a Firebase refence.
+Connects a React component to a Firebase Database reference.
 
 It does not modify the component class passed to it.
 Instead, it *returns* a new, connected component class, for you to use.
@@ -54,7 +54,7 @@ Instead, it *returns* a new, connected component class, for you to use.
 
 * [`mapPropsToSubscriptions(props): subscriptions`] \(*Function*): If specified, the component will subscribe to Firebase `change` events. Its result must be a plain object, and it will be merged into the component’s props. Each value must either a path to a location in the firebase or a function with the signature `createQuery(database): [Query](https://firebase.google.com/docs/reference/js/firebase.database.Query)`.
 
-* [`mapDatabaseToProps(database, [ownProps]): actionProps`] \(*Function*): If specified, its result must be a plain object where each value is assumed to be a function that performs modifications to the Firebase. If you omit it, the default implementation just injects `firebase` into your component’s props.
+* [`mapDatabaseToProps(database, [ownProps]): actionProps`] \(*Function*): If specified, its result must be a plain object where each value is assumed to be a function that performs modifications to the Firebase. If you omit it, the default implementation just injects `database` into your component’s props.
 
 * [`mergeProps(stateProps, actionProps, ownProps): props`] \(*Function*): If specified, it is passed the result of `mapPropsToSubscriptions()`, `mapDatabaseToProps()`, and the parent `props`. The plain object you return from it will be passed as props to the wrapped component. You may specify this function to select a slice of the state based on props, or to bind action creators to a particular variable from props. If you omit it, `Object.assign({}, ownProps, stateProps, actionProps)` is used by default.
 
