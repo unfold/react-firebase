@@ -1,10 +1,10 @@
 import React, { PropTypes } from 'react'
 import { map } from 'lodash'
 import { connect } from '../../src'
-import { getSandBoxedPath } from '../common'
+import { getSandboxedPath } from '../common'
 import TaskSummary from './TaskSummary'
 
-const tasksPath = getSandBoxedPath('complex/tasks')
+const tasksPath = getSandboxedPath('complex/tasks')
 
 const TaskListItem = ({ taskId }) => (
   <li><TaskSummary taskId={taskId} /></li>

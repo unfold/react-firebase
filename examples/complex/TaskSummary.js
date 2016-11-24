@@ -1,8 +1,8 @@
 import React, { PropTypes } from 'react'
 import { connect } from '../../src'
-import { getSandBoxedPath } from '../common'
+import { getSandboxedPath } from '../common'
 
-const tasksPath = getSandBoxedPath('complex/tasks')
+const tasksPath = getSandboxedPath('complex/tasks')
 
 const TaskSummary = ({ name, description, flags = {} }) => (
   <span>{name} - {description} - {flags.outside ? '🌞' : '🏨'}</span>

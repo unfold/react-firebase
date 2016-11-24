@@ -1,9 +1,9 @@
 import React, { PropTypes } from 'react'
 import { partial } from 'lodash'
 import { connect } from '../../src'
-import { getSandBoxedPath } from '../common'
+import { getSandboxedPath } from '../common'
 
-const countPath = getSandBoxedPath('count')
+const countPath = getSandboxedPath('count')
 
 const Count = ({ count, setCount }) => (
   <div>

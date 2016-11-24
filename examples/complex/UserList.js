@@ -1,10 +1,10 @@
 import React, { PropTypes } from 'react'
 import { map } from 'lodash'
 import { connect } from '../../src'
-import { getSandBoxedPath } from '../common'
+import { getSandboxedPath } from '../common'
 import TaskSummary from './TaskSummary'
 
-const complexPath = getSandBoxedPath('complex')
+const complexPath = getSandboxedPath('complex')
 
 const UserTaskSummary = ({ tasks }) => (
   <span>
