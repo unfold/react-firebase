@@ -5,7 +5,7 @@ React bindings for [Firebase](https://firebase.google.com).
 
 ## Installation
 
-React Firebase requires **React 15 and Firebase 3 or later.**
+React Firebase requires **React 0.14 and Firebase 3 or later.**
 
 ```
 npm install --save react-firebase

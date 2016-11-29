@@ -54,9 +54,9 @@
     "isparta": "^4.0.0",
     "jsdom": "^9.8.3",
     "jsdom-global": "^2.1.0",
-    "react": "^15.4.0",
-    "react-addons-test-utils": "^15.4.0",
-    "react-dom": "^15.4.0",
+    "react": "^0.14.8 || ^15.0.0",
+    "react-addons-test-utils": "^0.14.8 || ^15.0.0",
+    "react-dom": "^0.14.8 || ^15.0.0",
     "tape": "^4.5.1",
     "webpack": "^1.12.14",
     "webpack-dev-middleware": "^1.6.1"
@@ -67,6 +67,6 @@
   },
   "peerDependencies": {
     "firebase": "^3.6.1",
-    "react": "^15.4.0"
+    "react": "^0.14.8 || ^15.0.0"
   }
 }
