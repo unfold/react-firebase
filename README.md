@@ -54,9 +54,10 @@ Instead, it *returns* a new, connected component class, for you to use.
 
 * [`mapPropsToSubscriptions(props): subscriptions`] \(*Function*): If specified, the component will subscribe to Firebase `change` events. Its result must be a plain object, and it will be merged into the component’s props. Each value must either a path to a location in the firebase or a function with the signature `createQuery(ref): [Query](https://firebase.google.com/docs/reference/js/firebase.database.Query)`.
 
-* [`mapFirebaseToProps(firebase, [ownProps]): actionProps`] \(*Function*): If specified, its result must be a plain object where each value is assumed to be a function that performs modifications to the Firebase. If you omit it, the default implementation just injects `firebase` into your component’s props.
+* [`mapFirebaseToProps(ref, firebase, [ownProps]): firebaseProps`] \(*Function*): If specified, its result must be a plain object where each value is assumed to be a function that performs modifications to the Firebase. If you omit it, the default implementation just injects `database: path => ref(path)`
+into your component’s props.
 
-* [`mergeProps(stateProps, actionProps, ownProps): props`] \(*Function*): If specified, it is passed the result of `mapPropsToSubscriptions()`, `mapFirebaseToProps()`, and the parent `props`. The plain object you return from it will be passed as props to the wrapped component. You may specify this function to select a slice of the state based on props, or to bind action creators to a particular variable from props. If you omit it, `Object.assign({}, ownProps, stateProps, actionProps)` is used by default.
+* [`mergeProps(stateProps, firebaseProps, ownProps): props`] \(*Function*): If specified, it is passed the result of `mapPropsToSubscriptions()`, `mapFirebaseToProps()`, and the parent `props`. The plain object you return from it will be passed as props to the wrapped component. You may specify this function to select a slice of the state based on props, or to bind action creators to a particular variable from props. If you omit it, `Object.assign({}, ownProps, stateProps, firebaseProps)` is used by default.
 
 * [`options`] *(Object)* If specified, further customizes the behavior of the connector.
   * [`pure = true`] *(Boolean)*: If true, implements `shouldComponentUpdate` and shallowly compares the result of `mergeProps`, preventing unnecessary updates, assuming that the component is a “pure” component and does not rely on any input or state other than its props and subscriptions. *Defaults to `true`.*
@@ -98,8 +99,8 @@ const mapPropsToSubscriptions = () => ({
   todos: 'todos'
 })
 
-const mapFirebaseToProps = ({ database }) => ({
-  addTodo: todo => database().ref('todos').push(todo),
+const mapFirebaseToProps = ref => ({
+  addTodo: todo => ref('todos').push(todo),
 })
 
 export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
@@ -113,8 +114,8 @@ const mapPropsToSubscriptions = () => ({
   completedTodos: ref => ref('todos').orderByChild('completed').equalTo(true),
 })
 
-const mapFirebaseToProps = ({ auth, database}) => ({
-  completeTodo = id => database().ref(`todos/${id}/completed`).set(true)
+const mapFirebaseToProps = (ref, { auth }) => ({
+  completeTodo = id => ref(`todos/${id}/completed`).set(true)
   login: (email, password) => auth().signInWithEmailAndPassword(email, password)
 })
 

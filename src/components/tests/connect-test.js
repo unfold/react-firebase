@@ -14,6 +14,11 @@ const createMockApp = (dataBaseProps, ...otherProps) => ({
   database: () => dataBaseProps,
 })
 
+const createMockSnapshot = (val, ...otherProps) => ({
+  ...otherProps,
+  val: () => val,
+})
+
 const FirebaseAppReceiver = () => <div />
 FirebaseAppReceiver.propTypes = { firebase: firebaseAppShape }
 
@@ -48,12 +53,7 @@ test('Should subscribe to a single path', assert => {
     },
     on: (event, callback) => {
       assert.equal(event, 'value')
-
-      const mockSnapshot = {
-        val: () => 'foo changed',
-      }
-
-      callback(mockSnapshot)
+      callback(createMockSnapshot('foo changed'))
     },
   }
 
@@ -81,12 +81,7 @@ test('Should subscribe to a query', assert => {
     },
     on: (event, callback) => {
       assert.equal(event, 'value')
-
-      const mockSnapshot = {
-        val: () => 'bar changed',
-      }
-
-      callback(mockSnapshot)
+      callback(createMockSnapshot('bar changed'))
     },
   }
 
@@ -109,12 +104,7 @@ test('Should unsubscribe when component unmounts', assert => {
     },
     on: (event, callback) => {
       assert.equal(event, 'value')
-
-      const mockSnapshot = {
-        val: () => 'baz changed',
-      }
-
-      callback(mockSnapshot)
+      callback(createMockSnapshot('baz changed'))
     },
     off: event => {
       assert.equal(event, 'value')
