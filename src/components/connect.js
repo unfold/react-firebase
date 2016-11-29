@@ -8,7 +8,7 @@ import flattenObject from '../utils/flattenObject'
 import getDisplayName from '../utils/getDisplayName'
 
 const defaultMapPropsToSubscriptions = props => ({}) // eslint-disable-line no-unused-vars
-const defaultMapFirebaseToProps = getRef => ({ database: path => getRef(path) })
+const defaultMapFirebaseToProps = (ref, props, firebase) => ({ firebase })
 const defaultMergeProps = (subscriptionProps, firebaseProps, parentProps) => ({
   ...parentProps,
   ...subscriptionProps,
@@ -22,8 +22,9 @@ export default (mapPropsToSubscriptions, mapFirebaseToProps, mergeProps, options
   const finalMergeProps = mergeProps || defaultMergeProps
   const { pure = true, keepalive = 0 } = options
 
-  const computeSubscriptions = props => {
-    const subscriptions = mapSubscriptions(props)
+  const computeSubscriptions = (props, firebase) => {
+    const ref = path => firebase.database().ref(path)
+    const subscriptions = mapSubscriptions(ref, props, firebase)
 
     invariant(
       isPlainObject(subscriptions),
@@ -71,13 +72,13 @@ export default (mapPropsToSubscriptions, mapFirebaseToProps, mergeProps, options
         this.mounted = true
 
         if (shouldSubscribe) {
-          this.subscribe(computeSubscriptions(this.props))
+          this.subscribe(computeSubscriptions(this.props, this.firebase))
         }
       }
 
       componentWillReceiveProps(nextProps) {
-        const subscriptions = computeSubscriptions(this.props)
-        const nextSubscriptions = computeSubscriptions(nextProps)
+        const subscriptions = computeSubscriptions(this.props, this.firebase)
+        const nextSubscriptions = computeSubscriptions(nextProps, this.firebase)
 
         if (!pure || !shallowCompare(subscriptions, nextSubscriptions)) {
           const addedSubscriptions = pick(nextSubscriptions, (path, key) => !subscriptions[key])
@@ -159,9 +160,9 @@ export default (mapPropsToSubscriptions, mapFirebaseToProps, mergeProps, options
 
       render() {
         const firebase = this.firebase
-        const getRef = path => this.firebase.database().ref(path)
+        const ref = path => this.firebase.database().ref(path)
         const subscriptionProps = expandObject(this.state.subscriptionsState)
-        const firebaseProps = mapFirebase(getRef, firebase, this.props)
+        const firebaseProps = mapFirebase(ref, this.props, firebase)
         const props = computeMergedProps(subscriptionProps, firebaseProps, this.props)
 
         return createElement(WrappedComponent, props)
