@@ -32,6 +32,18 @@ const createMockApp = (dataBaseProps = defaultDatabaseProps, ...otherProps) => (
   database: () => dataBaseProps,
 })
 
+const renderStub = (mapFirebaseToProps, firebase, props) => {
+  const WrappedComponent = connect(mapFirebaseToProps)(Passthrough)
+  const container = renderIntoDocument(<WrappedComponent {...props} firebase={firebase} />)
+  const stub = findRenderedComponentWithType(container, Passthrough)
+
+  return {
+    container,
+    props: stub.props,
+    state: container.state.subscriptionsState,
+  }
+}
+
 test('Should throw if no Firebase app instance was found in either props or context', assert => {
   const errorPattern = /Could not find "firebase"/
 
@@ -68,15 +80,12 @@ test('Should subscribe to a single path', assert => {
     },
   }
 
-  const mapPropsToSubscriptions = () => ({ foo: 'foo' })
-  const WrappedComponent = connect(mapPropsToSubscriptions)(Passthrough)
-
+  const mapFirebaseToProps = () => ({ foo: 'foo' })
   const firebase = createMockApp(mockDatabase)
-  const container = renderIntoDocument(<WrappedComponent firebase={firebase} />)
-  const stub = findRenderedComponentWithType(container, Passthrough)
+  const { state, props } = renderStub(mapFirebaseToProps, firebase)
 
-  assert.deepEqual(container.state.subscriptionsState, { foo: 'foo value' })
-  assert.equal(stub.props.foo, 'foo value')
+  assert.deepEqual(state, { foo: 'foo value' })
+  assert.equal(props.foo, 'foo value')
   assert.end()
 })
 
@@ -87,8 +96,14 @@ test('Should subscribe to a query', assert => {
 
       return mockDatabase
     },
-    startAt: priority => {
-      assert.equal(priority, 1)
+    startAt: value => {
+      assert.equal(value, 1)
+
+      return mockDatabase
+    },
+    endAt: (value, key) => {
+      assert.equal(value, 2)
+      assert.equal(key, 'car')
 
       return mockDatabase
     },
@@ -98,15 +113,34 @@ test('Should subscribe to a query', assert => {
     },
   }
 
-  const mapPropsToSubscriptions = () => ({ bar: ref => ref('bar').startAt(1) })
-  const WrappedComponent = connect(mapPropsToSubscriptions)(Passthrough)
+  const mapFirebaseToProps = () => ({
+    bar: {
+      path: 'bar',
+      startAt: 1,
+      endAt: [2, 'car'],
+    },
+  })
 
   const firebase = createMockApp(mockDatabase)
-  const container = renderIntoDocument(<WrappedComponent firebase={firebase} />)
-  const stub = findRenderedComponentWithType(container, Passthrough)
+  const { state, props } = renderStub(mapFirebaseToProps, firebase)
 
-  assert.deepEqual(container.state.subscriptionsState, { bar: 'bar value' })
-  assert.equal(stub.props.bar, 'bar value')
+  assert.deepEqual(state, { bar: 'bar value' })
+  assert.equal(props.bar, 'bar value')
+  assert.end()
+})
+
+test('Should not subscribe to functions', assert => {
+  const mapFirebaseToProps = (props, ref) => ({
+    foo: 'foo',
+    addFoo: name => ref('foo').push(name),
+  })
+
+  const firebase = createMockApp()
+  const { state, props } = renderStub(mapFirebaseToProps, firebase)
+
+  assert.deepEqual(state, { foo: 'foo value' })
+  assert.equal(props.foo, 'foo value')
+  assert.equal(typeof props.addFoo, 'function')
   assert.end()
 })
 
@@ -126,51 +160,17 @@ test('Should unsubscribe when component unmounts', assert => {
     },
   }
 
-  const mapPropsToSubscriptions = () => ({ baz: 'baz' })
-  const WrappedComponent = connect(mapPropsToSubscriptions)(Passthrough)
+  const mapFirebaseToProps = () => ({ baz: 'baz' })
   const firebase = createMockApp(mockDatabase)
-  const container = renderIntoDocument(<WrappedComponent firebase={firebase} />)
+  const { container } = renderStub(mapFirebaseToProps, firebase)
 
   unmountComponentAtNode(findDOMNode(container).parentNode)
 
   assert.end()
 })
 
-test('Should subscribe to nested paths', assert => {
-  const mapPropsToSubscriptions = () => ({
-    user: {
-      name: 'user/name',
-      photo: 'user/photo/url',
-      address: {
-        street: 'user/address/street',
-      },
-    },
-  })
-
-  const WrappedComponent = connect(mapPropsToSubscriptions)(Passthrough)
-  const firebase = createMockApp()
-  const container = renderIntoDocument(<WrappedComponent firebase={firebase} />)
-  const stub = findRenderedComponentWithType(container, Passthrough)
-
-  assert.deepEqual(container.state.subscriptionsState, {
-    'user.name': 'user/name value',
-    'user.photo': 'user/photo/url value',
-    'user.address.street': 'user/address/street value',
-  })
-
-  assert.deepEqual(stub.props.user, {
-    name: 'user/name value',
-    photo: 'user/photo/url value',
-    address: {
-      street: 'user/address/street value',
-    },
-  })
-
-  assert.end()
-})
-
-test('Should pass ref, props and firebase to mapPropsToSubscriptions', assert => {
-  const mapPropsToSubscriptions = (ref, props, firebase) => {
+test('Should pass props, ref and firebase to mapFirebaseToProps', assert => {
+  const mapFirebaseToProps = (props, ref, firebase) => {
     assert.deepEqual(props.foo, 'foo prop')
     assert.equal(typeof firebase.database, 'function')
     assert.equal(typeof ref, 'function')
@@ -179,31 +179,9 @@ test('Should pass ref, props and firebase to mapPropsToSubscriptions', assert =>
   }
 
   const firebase = createMockApp()
-  const WrappedComponent = connect(mapPropsToSubscriptions)(Passthrough)
-  const container = renderIntoDocument(<WrappedComponent firebase={firebase} foo="foo prop" />)
-  const stub = findRenderedComponentWithType(container, Passthrough)
+  const { props } = renderStub(mapFirebaseToProps, firebase, { foo: 'foo prop' })
 
-  assert.equal(stub.props.foo, 'foo value')
-  assert.end()
-})
-
-test('Should pass ref, props and firebase to mapFirebaseToProps', assert => {
-  const mapFirebaseToProps = (ref, props, firebase) => {
-    assert.deepEqual(props.bar, 'bar prop')
-    assert.equal(typeof firebase.database, 'function')
-    assert.equal(typeof ref, 'function')
-
-    return {
-      bar: value => ref.set('bar', value),
-    }
-  }
-
-  const firebase = createMockApp()
-  const WrappedComponent = connect(null, mapFirebaseToProps)(Passthrough)
-  const container = renderIntoDocument(<WrappedComponent firebase={firebase} bar="bar prop" />)
-  const stub = findRenderedComponentWithType(container, Passthrough)
-
-  assert.equal(typeof stub.props.bar, 'function')
+  assert.equal(props.foo, 'foo value')
   assert.end()
 })
 

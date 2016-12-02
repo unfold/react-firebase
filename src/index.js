@@ -1,3 +1,3 @@
-export PropTypes from './utils/PropTypes'
-export Provider from './components/Provider'
-export connect from './components/connect'
+export PropTypes from './PropTypes'
+export Provider from './Provider'
+export connect from './connect'

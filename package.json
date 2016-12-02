@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "invariant": "^2.0.0",
-    "lodash": "^4.2.0"
+    "lodash": "^4.17.2"
   },
   "peerDependencies": {
     "firebase": "^3.6.1",
