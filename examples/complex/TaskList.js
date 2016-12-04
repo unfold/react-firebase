@@ -26,16 +26,19 @@ TaskList.propTypes = {
   tasks: PropTypes.object,
 }
 
-const mapPropsToSubscriptions = ({ outside }) => {
+const mapFirebaseToProps = ({ outside }) => {
+  const query = {
+    path: tasksPath,
+  }
+
   if (outside) {
-    return {
-      tasks: ref => ref(tasksPath).orderByChild('outside').equalTo(true),
-    }
+    query.orderByChild = 'outside'
+    query.equalTo = true
   }
 
   return {
-    tasks: tasksPath,
+    tasks: query,
   }
 }
 
-export default connect(mapPropsToSubscriptions)(TaskList)
+export default connect(mapFirebaseToProps)(TaskList)

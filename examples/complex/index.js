@@ -7,47 +7,54 @@ import AddUser from './AddUser'
 import TaskList from './TaskList'
 
 const rootPath = getSandboxedPath('complex')
-
 const firebase = initializeDemoApp()
-firebase.database().ref(rootPath).set({
-  users: {
-    frank: {
-      name: 'Frank',
-      tasks: {
-        flooring: true,
-        gardening: true,
+const ref = firebase.database().ref(rootPath)
+
+ref.once('value', snapshot => {
+  if (snapshot.exists()) {
+    return
+  }
+
+  ref.set({
+    users: {
+      frank: {
+        name: 'Frank',
+        tasks: {
+          flooring: true,
+          gardening: true,
+        },
+      },
+
+      joe: {
+        name: 'Joe',
+        tasks: {
+          welding: true,
+        },
       },
     },
 
-    joe: {
-      name: 'Joe',
-      tasks: {
-        welding: true,
+    tasks: {
+      flooring: {
+        name: 'Flooring',
+        description: 'Lay some really nice floors',
+        outside: false,
+      },
+
+      gardening: {
+        name: 'Gardening',
+        description: 'Trim hedges and mow lawn',
+        outside: true,
+        completed: true,
+      },
+
+      welding: {
+        name: 'Welding',
+        description: 'Weld pipes',
+        outside: false,
+        completed: true,
       },
     },
-  },
-
-  tasks: {
-    flooring: {
-      name: 'Flooring',
-      description: 'Lay some really nice floors',
-      outside: false,
-    },
-
-    gardening: {
-      name: 'Gardening',
-      description: 'Trim hedges and mow lawn',
-      outside: true,
-      completed: true,
-    },
-
-    welding: {
-      name: 'Welding',
-      description: 'Weld pipes',
-      outside: false,
-      completed: true,
-    },
-  },
+  })
 })
 
 const App = () => (

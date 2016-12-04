@@ -43,7 +43,7 @@ ReactDOM.render(
 )
 ```
 
-### `connect([mapPropsToSubscriptions], [mapFirebaseToProps], [mergeProps], [options])`
+### `connect([mapFirebaseToProps], [options])`
 
 Connects a React component to a Firebase App reference.
 
@@ -52,11 +52,7 @@ Instead, it *returns* a new, connected component class, for you to use.
 
 #### Arguments
 
-* [`mapPropsToSubscriptions(ref, props, firebase): subscriptions`] \(*Function*): If specified, the component will subscribe to Firebase `change` events. Its result must be a plain object, and it will be merged into the component’s props. Each value must either a path to a location in the firebase or a function with the signature `createQuery(ref): [Query](https://firebase.google.com/docs/reference/js/firebase.database.Query)`.
-
-* [`mapFirebaseToProps(ref, props, firebase, [ownProps]): firebaseProps`] \(*Function*): If specified, its result must be a plain object where each value is assumed to be a function that performs modifications to the Firebase. If you omit it, the default implementation just injects `firebase` into your component’s props.
-
-* [`mergeProps(stateProps, firebaseProps, ownProps): props`] \(*Function*): If specified, it is passed the result of `mapPropsToSubscriptions()`, `mapFirebaseToProps()`, and the parent `props`. The plain object you return from it will be passed as props to the wrapped component. You may specify this function to select a slice of the state based on props, or to bind action creators to a particular variable from props. If you omit it, `Object.assign({}, ownProps, stateProps, firebaseProps)` is used by default.
+* [`mapFirebaseToProps(props, ref, firebase): subscriptions`] \(*Object or Function*): If specified, the component will subscribe to Firebase `value` events. Its result, or the argument itself must be a plain object, and it will be merged into the component’s props. Each value must either a path to a location in the firebase, a query object or a function). If you omit it, the default implementation just injects `firebase` into your component’s props.
 
 * [`options`] *(Object)* If specified, further customizes the behavior of the connector.
   * [`pure = true`] *(Boolean)*: If true, implements `shouldComponentUpdate` and shallowly compares the result of `mergeProps`, preventing unnecessary updates, assuming that the component is a “pure” component and does not rely on any input or state other than its props and subscriptions. *Defaults to `true`.*
@@ -71,7 +67,7 @@ A React component class that injects subscriptions and actions into your compone
 
 #### Remarks
 
-* It needs to be invoked two times. The first time with its arguments described above, and a second time, with the component: `connect(mapPropsToSubscriptions, mapFirebaseToProps, mergeProps)(MyComponent)`.
+* It needs to be invoked two times. The first time with its arguments described above, and a second time, with the component: `connect(mapFirebaseToProps)(MyComponent)`.
 
 * It does not modify the passed React component. It returns a new, connected component, that you should use instead.
 
@@ -79,46 +75,40 @@ A React component class that injects subscriptions and actions into your compone
 
 > Runnable examples can be found in the [examples folder](examples/).
 
-##### Inject `firebase` and `todos`
+##### Inject `todos`
 
   > Note: The value of `todos` is analogous to https://my-firebase.firebaseio.com/todos.
 
 ```js
-const mapPropsToSubscriptions = () => ({
+const mapFirebaseToProps = {
   todos: 'todos'
-})
+}
 
-export default connect(mapPropsToSubscriptions)(TodoApp)
+export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
 #####  Inject `todos` and a function that adds a new todo (`addTodo`)
 
 ```js
-const mapPropsToSubscriptions = () => ({
+const mapFirebaseToProps = (props, ref) => ({
   todos: 'todos'
-})
-
-const mapFirebaseToProps = ref => ({
   addTodo: todo => ref('todos').push(todo),
 })
 
-export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
+export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
 #####  Inject `todos`, `completedTodos`, a function that completes a todo (`completeTodo`) and one that logs in
 
 ```js
-const mapPropsToSubscriptions = ref => ({
+const mapFirebaseToProps = (ref, props, { auth }) => ({
   todos: 'todos',
   completedTodos: ref('todos').orderByChild('completed').equalTo(true),
-})
-
-const mapFirebaseToProps = (ref, props, { auth }) => ({
   completeTodo = id => ref(`todos/${id}/completed`).set(true)
   login: (email, password) => auth().signInWithEmailAndPassword(email, password)
 })
 
-export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
+export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
 ## License

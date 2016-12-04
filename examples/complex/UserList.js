@@ -38,6 +38,8 @@ UserList.propTypes = {
   users: PropTypes.object,
 }
 
-const mapPropsToSubscriptions = () => ({ users: `${complexPath}/users` })
+const mapFirebaseToProps = {
+  users: `${complexPath}/users`,
+}
 
-export default connect(mapPropsToSubscriptions)(UserList)
+export default connect(mapFirebaseToProps)(UserList)

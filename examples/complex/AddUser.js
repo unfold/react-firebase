@@ -43,8 +43,8 @@ AddUser.propTypes = {
   addUser: PropTypes.func.isRequired,
 }
 
-const mapRefToProps = ref => ({
+const mapFirebaseToProps = (props, ref) => ({
   addUser: name => ref(usersPath).push({ name }),
 })
 
-export default connect(null, mapRefToProps)(AddUser)
+export default connect(mapFirebaseToProps)(AddUser)

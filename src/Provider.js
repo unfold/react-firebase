@@ -1,5 +1,5 @@
 import { Component, PropTypes, Children } from 'react'
-import { firebaseAppShape } from '../utils/PropTypes'
+import { firebaseAppShape } from './PropTypes'
 
 export default class Provider extends Component {
   static propTypes = {

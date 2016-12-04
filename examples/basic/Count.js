@@ -19,9 +19,9 @@ Count.propTypes = {
   setCount: PropTypes.func.isRequired,
 }
 
-const mapPropsToSubscriptions = () => ({ count: countPath })
-const mapRefToProps = ref => ({
+const mapFirebaseToProps = (props, ref) => ({
+  count: countPath,
   setCount: count => ref(countPath).set(count),
 })
 
-export default connect(mapPropsToSubscriptions, mapRefToProps)(Count)
+export default connect(mapFirebaseToProps)(Count)
