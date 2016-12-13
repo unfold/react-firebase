@@ -1,3 +1,4 @@
+import firebase from 'firebase'
 import invariant from 'invariant'
 import shallowCompare from 'react/lib/shallowCompare'
 import { Component, createElement } from 'react'
@@ -18,7 +19,7 @@ const mapSubscriptionsToQueries = subscriptions => (
   }), {})
 )
 
-const defaultMapFirebaseToProps = (props, ref, firebase) => ({ firebase })
+const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({ firebaseApp })
 
 export default (
   mapFirebaseToProps = defaultMapFirebaseToProps,
@@ -30,8 +31,8 @@ export default (
     isFunction(mapFirebaseToProps) ? mapFirebaseToProps : () => mapFirebaseToProps
   )
 
-  const computeSubscriptions = (props, ref, firebase) => {
-    const firebaseProps = mapFirebase(props, ref, firebase)
+  const computeSubscriptions = (props, ref, firebaseApp) => {
+    const firebaseProps = mapFirebase(props, ref, firebaseApp)
     const subscriptions = pickBy(firebaseProps, prop => isString(prop) || prop.path)
 
     invariant(
@@ -48,18 +49,8 @@ export default (
       constructor(props, context) {
         super(props, context)
 
-        const firebase = props.firebase || context.firebase
-
-        invariant(firebase,
-          'Could not find "firebase" in either the context or ' +
-          `props of "${this.constructor.displayName}". ` +
-          'Either wrap the root component in a <Provider>, ' +
-          `or explicitly pass "firebase" as a prop to "${this.constructor.displayName}".`
-        )
-
-        this.firebase = firebase
-        this.ref = path => firebase.database().ref(path)
-
+        this.firebaseApp = props.firebaseApp || context.firebaseApp || firebase.app()
+        this.ref = path => this.firebaseApp.database().ref(path)
         this.state = {
           subscriptionsState: null,
         }
@@ -68,7 +59,7 @@ export default (
       componentDidMount() {
         this.mounted = true
 
-        const subscriptions = computeSubscriptions(this.props, this.ref, this.firebase)
+        const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
         const shouldSubscribe = keys(subscriptions).length > 0
 
         if (shouldSubscribe) {
@@ -77,8 +68,8 @@ export default (
       }
 
       componentWillReceiveProps(nextProps) {
-        const subscriptions = computeSubscriptions(this.props, this.ref, this.firebase)
-        const nextSubscriptions = computeSubscriptions(nextProps, this.ref, this.firebase)
+        const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
+        const nextSubscriptions = computeSubscriptions(nextProps, this.ref, this.firebaseApp)
 
         if (!pure || !shallowCompare(subscriptions, nextSubscriptions)) {
           const addedSubscriptions = pickBy(nextSubscriptions, (path, key) => !subscriptions[key])
@@ -146,7 +137,7 @@ export default (
       }
 
       render() {
-        const firebaseProps = mapFirebase(this.props, this.ref, this.firebase)
+        const firebaseProps = mapFirebase(this.props, this.ref, this.firebaseApp)
         const actionProps = pickBy(firebaseProps, isFunction)
         const subscriptionProps = this.state.subscriptionsState
         const props = mergeProps(actionProps, subscriptionProps, this.props)
@@ -159,7 +150,7 @@ export default (
     FirebaseConnect.defaultProps = Component.defaultProps
     FirebaseConnect.displayName = `FirebaseConnect(${getDisplayName(WrappedComponent)})`
     FirebaseConnect.contextTypes = FirebaseConnect.propTypes = {
-      firebase: firebaseAppShape,
+      firebaseApp: firebaseAppShape,
     }
 
     return FirebaseConnect

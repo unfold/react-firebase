@@ -32,9 +32,9 @@ const createMockApp = (dataBaseProps = defaultDatabaseProps, ...otherProps) => (
   database: () => dataBaseProps,
 })
 
-const renderStub = (mapFirebaseToProps, firebase, props) => {
+const renderStub = (mapFirebaseToProps, firebaseApp, props) => {
   const WrappedComponent = connect(mapFirebaseToProps)(Passthrough)
-  const container = renderIntoDocument(<WrappedComponent {...props} firebase={firebase} />)
+  const container = renderIntoDocument(<WrappedComponent {...props} firebaseApp={firebaseApp} />)
   const stub = findRenderedComponentWithType(container, Passthrough)
 
   return {
@@ -44,8 +44,8 @@ const renderStub = (mapFirebaseToProps, firebase, props) => {
   }
 }
 
-test('Should throw if no Firebase app instance was found in either props or context', assert => {
-  const errorPattern = /Could not find "firebase"/
+test('Should throw if no Firebase app instance was found either globally, in props or context', assert => {
+  const errorPattern = /No Firebase App/
 
   assert.throws(() => {
     const WrappedComponent = connect()('div')
@@ -54,14 +54,14 @@ test('Should throw if no Firebase app instance was found in either props or cont
   }, errorPattern)
 
   assert.doesNotThrow(() => {
-    const firebase = createMockApp()
+    const firebaseApp = createMockApp()
     const WrappedComponent = connect()(props => {
-      assert.equal(props.firebase, firebase)
+      assert.equal(props.firebaseApp, firebaseApp)
 
       return <div />
     })
 
-    renderIntoDocument(<WrappedComponent firebase={firebase} />)
+    renderIntoDocument(<WrappedComponent firebaseApp={firebaseApp} />)
   }, errorPattern)
 
   assert.end()
@@ -81,8 +81,8 @@ test('Should subscribe to a single path', assert => {
   }
 
   const mapFirebaseToProps = () => ({ foo: 'foo' })
-  const firebase = createMockApp(mockDatabase)
-  const { state, props } = renderStub(mapFirebaseToProps, firebase)
+  const firebaseApp = createMockApp(mockDatabase)
+  const { state, props } = renderStub(mapFirebaseToProps, firebaseApp)
 
   assert.deepEqual(state, { foo: 'foo value' })
   assert.equal(props.foo, 'foo value')
@@ -121,8 +121,8 @@ test('Should subscribe to a query', assert => {
     },
   })
 
-  const firebase = createMockApp(mockDatabase)
-  const { state, props } = renderStub(mapFirebaseToProps, firebase)
+  const firebaseApp = createMockApp(mockDatabase)
+  const { state, props } = renderStub(mapFirebaseToProps, firebaseApp)
 
   assert.deepEqual(state, { bar: 'bar value' })
   assert.equal(props.bar, 'bar value')
@@ -135,8 +135,8 @@ test('Should not subscribe to functions', assert => {
     addFoo: name => ref('foo').push(name),
   })
 
-  const firebase = createMockApp()
-  const { state, props } = renderStub(mapFirebaseToProps, firebase)
+  const firebaseApp = createMockApp()
+  const { state, props } = renderStub(mapFirebaseToProps, firebaseApp)
 
   assert.deepEqual(state, { foo: 'foo value' })
   assert.equal(props.foo, 'foo value')
@@ -161,8 +161,8 @@ test('Should unsubscribe when component unmounts', assert => {
   }
 
   const mapFirebaseToProps = () => ({ baz: 'baz' })
-  const firebase = createMockApp(mockDatabase)
-  const { container } = renderStub(mapFirebaseToProps, firebase)
+  const firebaseApp = createMockApp(mockDatabase)
+  const { container } = renderStub(mapFirebaseToProps, firebaseApp)
 
   unmountComponentAtNode(findDOMNode(container).parentNode)
 
@@ -178,8 +178,8 @@ test('Should pass props, ref and firebase to mapFirebaseToProps', assert => {
     return { foo: 'foo' }
   }
 
-  const firebase = createMockApp()
-  const { props } = renderStub(mapFirebaseToProps, firebase, { foo: 'foo prop' })
+  const firebaseApp = createMockApp()
+  const { props } = renderStub(mapFirebaseToProps, firebaseApp, { foo: 'foo prop' })
 
   assert.equal(props.foo, 'foo value')
   assert.end()

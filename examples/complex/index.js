@@ -7,8 +7,8 @@ import AddUser from './AddUser'
 import TaskList from './TaskList'
 
 const rootPath = getSandboxedPath('complex')
-const firebase = initializeDemoApp()
-const ref = firebase.database().ref(rootPath)
+const firebaseApp = initializeDemoApp()
+const ref = firebaseApp.database().ref(rootPath)
 
 ref.once('value', snapshot => {
   if (snapshot.exists()) {
@@ -72,7 +72,7 @@ const App = () => (
 )
 
 render((
-  <Provider firebase={firebase}>
+  <Provider firebaseApp={firebaseApp}>
     <App />
   </Provider>
 ), document.getElementById('example'))
