@@ -70,7 +70,7 @@ export default connect(mapFirebaseToProps)(TodoApp)
 #####  Inject `todos`, `completedTodos`, a function that completes a todo (`completeTodo`) and one that logs in
 
 ```js
-const mapFirebaseToProps = (ref, props, { auth }) => ({
+const mapFirebaseToProps = (props, ref, { auth }) => ({
   todos: 'todos',
   completedTodos: {
     path: 'todos',
