@@ -3,9 +3,18 @@ React Firebase
 
 React bindings for [Firebase](https://firebase.google.com).
 
-## Quick Start
+## Installation
+
+```
+npm install --save react-firebase
+```
+
+React Firebase requires **[React 0.14](https://github.com/facebook/react) and [Firebase 3](https://www.npmjs.com/package/firebase) or later.**
+
+## Example
 
 ```js
+import React from 'react'
 import firebase from 'firebase'
 import { connect } from 'react-firebase'
 
@@ -26,14 +35,6 @@ export default connect((props, ref) => ({
   setValue: value => ref('counterValue').set(value)
 }))(TodosApp)
 ```
-
-## Installation
-
-```
-npm install --save react-firebase
-```
-
-React Firebase requires **[React 0.14](https://github.com/facebook/react) and [Firebase 3](https://www.npmjs.com/package/firebase) or later.**
 
 ## Usage
 
