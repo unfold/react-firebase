@@ -24,16 +24,16 @@ firebase.initializeApp({
 
 const Counter = ({ value, setValue }) => (
   <div>
-    <button onClick={() => setCount(value - 1)}>-</button>
+    <button onClick={() => setValue(value - 1)}>-</button>
     <span>{value}</span>
-    <button onClick={() => setCount(value + 1)}>+</button>
+    <button onClick={() => setValue(value + 1)}>+</button>
   </div>
 )
 
 export default connect((props, ref) => ({
   value: 'counterValue',
   setValue: value => ref('counterValue').set(value)
-}))(TodosApp)
+}))(Counter)
 ```
 
 ## Usage
