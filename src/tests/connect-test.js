@@ -186,5 +186,3 @@ test('Should pass props, ref and firebase to mapFirebaseToProps', assert => {
 })
 
 test('Should update subscriptions when props change')
-test('Should not re-render if options.pure is true')
-test('Should re-render if options.pure is false')

@@ -1,6 +1,5 @@
 import firebase from 'firebase'
 import invariant from 'invariant'
-import shallowCompare from 'react/lib/shallowCompare'
 import { Component, createElement } from 'react'
 import { isFunction, isPlainObject, isString, keys, pickBy, omitBy, reduce } from 'lodash'
 import { firebaseAppShape } from './PropTypes'
@@ -21,12 +20,7 @@ const mapSubscriptionsToQueries = subscriptions => (
 
 const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({ firebaseApp })
 
-export default (
-  mapFirebaseToProps = defaultMapFirebaseToProps,
-  options = {}
-) => {
-  const { pure = true } = options
-
+export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
   const mapFirebase = (
     isFunction(mapFirebaseToProps) ? mapFirebaseToProps : () => mapFirebaseToProps
   )
@@ -70,17 +64,14 @@ export default (
       componentWillReceiveProps(nextProps) {
         const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
         const nextSubscriptions = computeSubscriptions(nextProps, this.ref, this.firebaseApp)
+        const addedSubscriptions = pickBy(nextSubscriptions, (path, key) => !subscriptions[key])
+        const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
+        const changedSubscriptions = pickBy(nextSubscriptions, (path, key) => (
+          subscriptions[key] && subscriptions[key] !== path
+        ))
 
-        if (!pure || !shallowCompare(subscriptions, nextSubscriptions)) {
-          const addedSubscriptions = pickBy(nextSubscriptions, (path, key) => !subscriptions[key])
-          const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
-          const changedSubscriptions = pickBy(nextSubscriptions, (path, key) => (
-            subscriptions[key] && subscriptions[key] !== path
-          ))
-
-          this.unsubscribe({ ...removedSubscriptions, ...changedSubscriptions })
-          this.subscribe({ ...addedSubscriptions, ...changedSubscriptions })
-        }
+        this.unsubscribe({ ...removedSubscriptions, ...changedSubscriptions })
+        this.subscribe({ ...addedSubscriptions, ...changedSubscriptions })
       }
 
       componentWillUnmount() {

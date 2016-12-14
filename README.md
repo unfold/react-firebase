@@ -13,7 +13,7 @@ npm install --save react-firebase
 
 ## Usage
 
-### `connect([mapFirebaseToProps], [options])`
+### `connect([mapFirebaseToProps])`
 
 Connects a React component to a Firebase App reference.
 
@@ -22,9 +22,6 @@ It does not modify the component class passed to it. Instead, it *returns* a new
 #### Arguments
 
 * [`mapFirebaseToProps(props, ref, firebaseApp): subscriptions`] \(*Object or Function*): Its result, or the argument itself must be a plain object. Each value must either be a path to a location in your database, a query object or a function. If you omit it, the default implementation just injects `firebaseApp` into your component’s props.
-
-* [`options`] *(Object)* If specified, further customizes the behavior of the connector.
-  * [`pure = true`] *(Boolean)*: If true, implements `shouldComponentUpdate`, preventing unnecessary updates, assuming that the component is a “pure” component and does not rely on any input or state other than its props and subscriptions. *Defaults to `true`.*
 
 #### Returns
 
