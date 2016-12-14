@@ -90,7 +90,7 @@ If you *really* need to, you can manually pass `firebaseApp` as a prop to every 
 #### Props
 
 * `firebaseApp` (*[App](https://firebase.google.com/docs/reference/js/firebase.app.App)*): A Firebase App reference.
-* `children` (*ReactElement*) The root of your component hierarchy.
+* `children` (*ReactElement*): The root of your component hierarchy.
 
 #### Example
 
