@@ -5,7 +5,7 @@ React bindings for [Firebase](https://firebase.google.com).
 
 ## Quick Start
 
-```
+```js
 import firebase from 'firebase'
 import { connect } from 'react-firebase'
 
