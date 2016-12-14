@@ -31,12 +31,6 @@ A React component class that injects subscriptions and actions into your compone
 
 * `WrappedComponent` *(Component)*: The original component class passed to `connect()`.
 
-#### Remarks
-
-* It needs to be invoked two times. The first time with its arguments described above, and a second time, with the component: `connect(mapFirebaseToProps)(MyComponent)`.
-
-* It does not modify the passed React component. It returns a new, connected component, that you should use instead.
-
 #### Examples
 
 > Runnable examples can be found in the [examples folder](examples/).
