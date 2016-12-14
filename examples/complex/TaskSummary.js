@@ -1,22 +1,23 @@
-import React, { PropTypes } from 'react';
-import { connect } from 'react-firebase';
+import React, { PropTypes } from 'react'
+import { connect } from '../../src'
+import { getSandboxedPath } from '../common'
 
-const TaskSummary = ({ name, description, flags = {} }) => (
-  <span>{name} - {description} - {flags.outside ? '🌞' : '🏨'}</span>
-);
+const tasksPath = getSandboxedPath('complex/tasks')
+
+const TaskSummary = ({ name, description, outside }) => (
+  <span>{name} - {description} - {outside ? '🌞' : '🏨'}</span>
+)
 
 TaskSummary.propTypes = {
   name: PropTypes.string,
   description: PropTypes.string,
-  flags: PropTypes.object,
-};
+  outside: PropTypes.bool,
+}
 
-const mapPropsToSubscriptions = ({ taskId }) => ({
-  name: `tasks/${taskId}/name`,
-  description: `tasks/${taskId}/description`,
-  flags: {
-    outside: `tasks/${taskId}/outside`,
-  },
-});
+const mapFirebaseToProps = ({ taskId }) => ({
+  name: `${tasksPath}/${taskId}/name`,
+  description: `${tasksPath}/${taskId}/description`,
+  outside: `${tasksPath}/${taskId}/outside`,
+})
 
-export default connect(mapPropsToSubscriptions)(TaskSummary);
+export default connect(mapFirebaseToProps)(TaskSummary)

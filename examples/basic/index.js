@@ -1,14 +1,8 @@
-import React from 'react';
-import { render } from 'react-dom';
-import Count from './Count';
-import createDemoRef from '../createDemoRef';
+import React from 'react'
+import { render } from 'react-dom'
+import { initializeDemoApp } from '../common'
+import Count from './Count'
 
-const firebase = createDemoRef('basic');
+initializeDemoApp()
 
-const App = () => (
-  <div>
-    <Count firebase={firebase} />
-  </div>
-);
-
-render(<App />, document.getElementById('example'));
+render(<Count />, document.getElementById('example'))

@@ -1,10 +1,12 @@
 machine:
   node:
-    version: 5.9.1
+    version: stable
 
 dependencies:
+  pre:
+    - curl -o- -L https://yarnpkg.com/install.sh | TERM=xterm bash
   override:
-    - npm install --ignore-scripts
+    - yarn
 
 test:
   override:

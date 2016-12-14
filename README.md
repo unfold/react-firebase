@@ -1,131 +1,131 @@
 React Firebase
 ==============
 
-React bindings for [Firebase](https://www.firebase.com).
+React bindings for [Firebase](https://firebase.google.com).
 
 ## Installation
-
-React Firebase requires **React 0.14 or later.**
 
 ```
 npm install --save react-firebase
 ```
 
-## Usage
+React Firebase requires **[React 0.14](https://github.com/facebook/react) and [Firebase 3](https://www.npmjs.com/package/firebase) or later.**
 
-### `<Provider firebase>`
-
-Makes a Firebase refence available to the `connect()` calls in the component hierarchy below. Normally, you can’t use `connect()` without wrapping the root component in `<Provider>`.
-
-If you *really* need to, you can manually pass `firebase` as a prop to every `connect()`ed component, but we only recommend to do this for stubbing `firebase` in unit tests, or in non-fully-React codebases. Normally, you should just use `<Provider>`.
-
-#### Props
-
-* `firebase` (*[Firebase](https://www.firebase.com/docs/web/api/firebase/constructor.html)*): A Firebase reference.
-* `children` (*ReactElement*) The root of your component hierarchy.
-
-#### Example
-
-##### Vanilla React
+## Example
 
 ```js
-const firebase = new Firebase('https://my-firebase.firebaseio.com');
+import React from 'react'
+import firebase from 'firebase'
+import { connect } from 'react-firebase'
 
-ReactDOM.render(
-  <Provider firebase={firebase}>
-    <MyRootComponent />
-  </Provider>,
-  rootEl
+firebase.initializeApp({
+  databaseURL: 'https://react-firebase-sandbox.firebaseio.com'
+})
+
+const Counter = ({ value, setValue }) => (
+  <div>
+    <button onClick={() => setCount(value - 1)}>-</button>
+    <span>{value}</span>
+    <button onClick={() => setCount(value + 1)}>+</button>
+  </div>
 )
+
+export default connect((props, ref) => ({
+  value: 'counterValue',
+  setValue: value => ref('counterValue').set(value)
+}))(TodosApp)
 ```
 
-### `connect([mapPropsToSubscriptions], [mapFirebaseToProps], [mergeProps], [options])`
+## Usage
 
-Connects a React component to a Firebase refence.
+### `connect([mapFirebaseToProps])`
 
-It does not modify the component class passed to it.  
-Instead, it *returns* a new, connected component class, for you to use.
+Connects a React component to a Firebase App reference.
+
+It does not modify the component class passed to it. Instead, it *returns* a new, connected component class, for you to use.
 
 #### Arguments
 
-* [`mapPropsToSubscriptions(props): subscriptions`] \(*Function*): If specified, the component will subscribe to Firebase `change` events. Its result must be a plain object, and it will be merged into the component’s props. Each value must either a path to a location in the firebase or a function with the signature `createQuery(firebase): [Query](https://www.firebase.com/docs/web/api/query)`.
-
-* [`mapFirebaseToProps(firebase, [ownProps]): actionProps`] \(*Function*): If specified, its result must be a plain object where each value is assumed to be a function that performs modifications to the Firebase. If you omit it, the default implementation just injects `firebase` into your component’s props.
-
-* [`mergeProps(stateProps, actionProps, ownProps): props`] \(*Function*): If specified, it is passed the result of `mapPropsToSubscriptions()`, `mapFirebaseToProps()`, and the parent `props`. The plain object you return from it will be passed as props to the wrapped component. You may specify this function to select a slice of the state based on props, or to bind action creators to a particular variable from props. If you omit it, `Object.assign({}, ownProps, stateProps, actionProps)` is used by default.
-
-* [`options`] *(Object)* If specified, further customizes the behavior of the connector.
-  * [`pure = true`] *(Boolean)*: If true, implements `shouldComponentUpdate` and shallowly compares the result of `mergeProps`, preventing unnecessary updates, assuming that the component is a “pure” component and does not rely on any input or state other than its props and subscriptions. *Defaults to `true`.*
+* [`mapFirebaseToProps(props, ref, firebaseApp): subscriptions`] \(*Object or Function*): Its result, or the argument itself must be a plain object. Each value must either be a path to a location in your database, a query object or a function. If you omit it, the default implementation just passes `firebaseApp` as a prop to your component.
 
 #### Returns
 
-A React component class that injects subscriptions and actions into your component according to the specified options.
+A React component class that passes subscriptions and actions as props to your component according to the specified options.
 
 ##### Static Properties
 
 * `WrappedComponent` *(Component)*: The original component class passed to `connect()`.
 
-#### Remarks
-
-* It needs to be invoked two times. The first time with its arguments described above, and a second time, with the component: `connect(mapPropsToSubscriptions, mapFirebaseToProps, mergeProps)(MyComponent)`.
-
-* It does not modify the passed React component. It returns a new, connected component, that you should use instead.
-
 #### Examples
 
 > Runnable examples can be found in the [examples folder](examples/).
 
-##### Inject `firebase` and `todos`
+##### Pass `todos` as a prop
 
-  > Note: The value of `todos` is analogous to https://my-firebase.firebaseio.com/todos.
+  > Note: The value of `todos` is the path to your data in Firebase. This is equivalent to `firebase.database().ref('todo')`.
 
 ```js
-function mapPropsToSubscriptions() {
-  return { todos: 'todos' }
+const mapFirebaseToProps = {
+  todos: 'todos'
 }
 
-export default connect(mapPropsToSubscriptions)(TodoApp)
+export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
-#####  Inject `todos` and a function that adds a new todo (`addTodo`)
+#####  Pass `todos` and a function that adds a new todo (`addTodo`) as props
 
 ```js
-function mapPropsToSubscriptions() {
-  return { todos: 'todos' }
-}
+const mapFirebaseToProps = (props, ref) => ({
+  todos: 'todos',
+  addTodo: todo => ref('todos').push(todo)
+})
 
-function mapFirebaseToProps(firebase) {
-  return {
-    addTodo: function(todo) {
-      firebase.child('todos').push(todo)
-    }
-  }
-}
-
-export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
+export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
-#####  Inject `todos`, `completedTodos` and a function that completes a todo (`completeTodo`)
+#####  Pass `todos`, `completedTodos`, a function that completes a todo (`completeTodo`) and one that logs in as props
 
 ```js
-function mapPropsToSubscriptions() {
-  return {
-    todos: 'todos',
-    completedTodos: function(firebase) {
-      return firebase.child('todos').orderByChild('completed').equalTo(true)
-    }
-  }
-}
+const mapFirebaseToProps = (props, ref, { auth }) => ({
+  todos: 'todos',
+  completedTodos: {
+    path: 'todos',
+    orderByChild: 'completed',
+    equalTo: true
+  },
+  completeTodo = id => ref(`todos/${id}/completed`).set(true),
+  login: (email, password) => auth().signInWithEmailAndPassword(email, password)
+})
 
-function mapFirebaseToProps(firebase) {
-  return {
-    completeTodo: function(id) {
-      firebase.child('todos').child(id).child('completed').set(true)
-    }
-  }
-}
+export default connect(mapFirebaseToProps)(TodoApp)
+```
 
-export default connect(mapPropsToSubscriptions, mapFirebaseToProps)(TodoApp)
+### `<Provider firebaseApp>`
+
+By default `connect()` will use the [default Firebase App](https://firebase.google.com/docs/reference/js/firebase.app). If you have multiple Firebase App references in your application you may use this to specify the Firebase App reference available to `connect()` calls in the component hierarchy below.
+
+If you *really* need to, you can manually pass `firebaseApp` as a prop to every `connect()`ed component, but we only recommend to do this for stubbing `firebaseApp` in unit tests, or in non-fully-React codebases. Normally, you should just use `<Provider>`.
+
+#### Props
+
+* `firebaseApp` (*[App](https://firebase.google.com/docs/reference/js/firebase.app.App)*): A Firebase App reference.
+* `children` (*ReactElement*): The root of your component hierarchy.
+
+#### Example
+
+```js
+import { initializeApp } from 'firebase'
+
+const firebaseApp = initializeApp({
+  databaseURL: 'https://my-firebase.firebaseio.com'
+})
+
+ReactDOM.render(
+  <Provider firebaseApp={firebaseApp}>
+    <MyRootComponent />
+  </Provider>,
+  rootEl
+)
 ```
 
 ## License

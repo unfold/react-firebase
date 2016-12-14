@@ -1,8 +1,10 @@
-import React, { PropTypes } from 'react';
-import { map } from 'lodash';
-import { connect } from 'react-firebase';
+import React, { PropTypes } from 'react'
+import { map } from 'lodash'
+import { connect } from '../../src'
+import { getSandboxedPath } from '../common'
+import TaskSummary from './TaskSummary'
 
-import TaskSummary from './TaskSummary';
+const complexPath = getSandboxedPath('complex')
 
 const UserTaskSummary = ({ tasks }) => (
   <span>
@@ -10,19 +12,19 @@ const UserTaskSummary = ({ tasks }) => (
       <TaskSummary key={taskId} taskId={taskId} />
     ))}
   </span>
-);
+)
 
 UserTaskSummary.propTypes = {
   tasks: PropTypes.object,
-};
+}
 
 const UserListItem = ({ user }) => (
   <li>{user.name} (<UserTaskSummary tasks={user.tasks} />)</li>
-);
+)
 
 UserListItem.propTypes = {
   user: PropTypes.object,
-};
+}
 
 const UserList = ({ users }) => (
   <div>
@@ -30,12 +32,14 @@ const UserList = ({ users }) => (
       {map(users, (user, userId) => <UserListItem key={userId} user={user} />)}
     </ul>
   </div>
-);
+)
 
 UserList.propTypes = {
   users: PropTypes.object,
-};
+}
 
-const mapPropsToSubscriptions = () => ({ users: 'users' });
+const mapFirebaseToProps = {
+  users: `${complexPath}/users`,
+}
 
-export default connect(mapPropsToSubscriptions)(UserList);
+export default connect(mapFirebaseToProps)(UserList)

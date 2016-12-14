@@ -1,4 +1,3 @@
-import Provider from './components/Provider';
-import connect from './components/connect';
-
-export { Provider, connect };
+export PropTypes from './PropTypes'
+export Provider from './Provider'
+export connect from './connect'
