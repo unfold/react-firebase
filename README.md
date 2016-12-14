@@ -61,7 +61,7 @@ A React component class that passes subscriptions and actions as props to your c
 
 ##### Pass `todos` as a prop
 
-  > Note: The value of `todos` is analogous to https://my-firebase.firebaseio.com/todos.
+  > Note: The value of `todos` is the path to your data in Firebase. This is equivalent to `firebase.database().ref('todo')`.
 
 ```js
 const mapFirebaseToProps = {
