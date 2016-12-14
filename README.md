@@ -29,11 +29,11 @@ export default connect((props, ref) => ({
 
 ## Installation
 
-React Firebase requires **React 0.14 and Firebase 3 or later.**
-
 ```
 npm install --save react-firebase
 ```
+
+React Firebase requires **[React 0.14](https://github.com/facebook/react) and [Firebase 3](https://www.npmjs.com/package/firebase) or later.**
 
 ## Usage
 
