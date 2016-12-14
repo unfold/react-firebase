@@ -2,7 +2,7 @@
   "name": "react-firebase",
   "version": "2.0.0",
   "description": "React bindings for Firebase",
-  "author": "Simen Brekken <simen@unfold.no> (http://github.com/unfold)",
+  "author": "Unfold <github@unfold.no> (http://github.com/unfold)",
   "license": "MIT",
   "scripts": {
     "build": "babel src --ignore src/**/*-test.js --out-dir lib",
