@@ -3,6 +3,30 @@ React Firebase
 
 React bindings for [Firebase](https://firebase.google.com).
 
+## Quick Start
+
+```
+import firebase from 'firebase'
+import { connect } from 'react-firebase'
+
+firebase.initializeApp({
+  databaseURL: 'https://react-firebase-sandbox.firebaseio.com'
+})
+
+const Counter = ({ value, setValue }) => (
+  <div>
+    <button onClick={() => setCount(value - 1)}>-</button>
+    <span>{value}</span>
+    <button onClick={() => setCount(value + 1)}>+</button>
+  </div>
+)
+
+export default connect((props, ref) => ({
+  value: 'counterValue',
+  setValue: value => ref('counterValue').set(value)
+}))(TodosApp)
+```
+
 ## Installation
 
 React Firebase requires **React 0.14 and Firebase 3 or later.**
@@ -21,11 +45,11 @@ It does not modify the component class passed to it. Instead, it *returns* a new
 
 #### Arguments
 
-* [`mapFirebaseToProps(props, ref, firebaseApp): subscriptions`] \(*Object or Function*): Its result, or the argument itself must be a plain object. Each value must either be a path to a location in your database, a query object or a function. If you omit it, the default implementation just injects `firebaseApp` into your component’s props.
+* [`mapFirebaseToProps(props, ref, firebaseApp): subscriptions`] \(*Object or Function*): Its result, or the argument itself must be a plain object. Each value must either be a path to a location in your database, a query object or a function. If you omit it, the default implementation just passes `firebaseApp` as a prop to your component.
 
 #### Returns
 
-A React component class that injects subscriptions and actions into your component according to the specified options.
+A React component class that passes subscriptions and actions as props to your component according to the specified options.
 
 ##### Static Properties
 
@@ -35,7 +59,7 @@ A React component class that injects subscriptions and actions into your compone
 
 > Runnable examples can be found in the [examples folder](examples/).
 
-##### Inject `todos`
+##### Pass `todos` as a prop
 
   > Note: The value of `todos` is analogous to https://my-firebase.firebaseio.com/todos.
 
@@ -47,7 +71,7 @@ const mapFirebaseToProps = {
 export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
-#####  Inject `todos` and a function that adds a new todo (`addTodo`)
+#####  Pass `todos` and a function that adds a new todo (`addTodo`) as props
 
 ```js
 const mapFirebaseToProps = (props, ref) => ({
@@ -58,7 +82,7 @@ const mapFirebaseToProps = (props, ref) => ({
 export default connect(mapFirebaseToProps)(TodoApp)
 ```
 
-#####  Inject `todos`, `completedTodos`, a function that completes a todo (`completeTodo`) and one that logs in
+#####  Pass `todos`, `completedTodos`, a function that completes a todo (`completeTodo`) and one that logs in as props
 
 ```js
 const mapFirebaseToProps = (props, ref, { auth }) => ({
