@@ -207,3 +207,12 @@ test('Should update subscriptions when props change', assert => {
 
   assert.end()
 })
+
+test('Should use last value from cache when cache is enabled', assert => {
+  const mapFirebaseToProps = props => ({ foo: 'foo' })
+})
+
+test('Should not use last value from cache when cache is disabled')
+
+
+test('Should use last value from cache when cache is enabled and previous', assert => {

@@ -3,7 +3,7 @@ import invariant from 'invariant'
 import { Component, createElement } from 'react'
 import { isFunction, isPlainObject, isString, keys, pickBy, omitBy, reduce } from 'lodash'
 import { firebaseAppShape } from './PropTypes'
-import { applyMethods, getDisplayName } from './utils'
+import { applyMethods, getDisplayName, getQueryKey } from './utils'
 
 const mergeProps = (actionProps, subscriptionProps, ownProps) => ({
   ...ownProps,
@@ -20,12 +20,20 @@ const mapSubscriptionsToQueries = subscriptions => (
 
 const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({ firebaseApp })
 
-export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
+export default (
+  mapFirebaseToProps = defaultMapFirebaseToProps,
+  {
+    cache = true,
+    cacheMap,
+  } = {},
+) => {
+  const valueCache = cacheMap || new Map()
+
   const mapFirebase = (
     isFunction(mapFirebaseToProps) ? mapFirebaseToProps : () => mapFirebaseToProps
   )
 
-  const computeSubscriptions = (props, ref, firebaseApp) => {
+  const getSubscriptions = (props, ref, firebaseApp) => {
     const firebaseProps = mapFirebase(props, ref, firebaseApp)
     const subscriptions = pickBy(firebaseProps, prop => isString(prop) || (prop && prop.path))
 
@@ -38,6 +46,24 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
     return subscriptions
   }
 
+  const getCachedSubscriptionsState = (props, ref, firebaseApp) => {
+    if (!cache) {
+      return null
+    }
+
+    const subscriptions = getSubscriptions(props, ref, firebaseApp)
+    const queries = mapSubscriptionsToQueries(subscriptions)
+
+    return reduce(queries, (state, { path, ...query }, key) => {
+      const value = valueCache.get(getQueryKey(path, query))
+
+      return {
+        ...state,
+        [key]: value,
+      }
+    }, {})
+  }
+
   return WrappedComponent => {
     class FirebaseConnect extends Component {
       constructor(props, context) {
@@ -46,14 +72,14 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
         this.firebaseApp = props.firebaseApp || context.firebaseApp || firebase.app()
         this.ref = path => this.firebaseApp.database().ref(path)
         this.state = {
-          subscriptionsState: null,
+          subscriptionsState: getCachedSubscriptionsState(props, this.ref, this.firebaseApp),
         }
       }
 
       componentDidMount() {
         this.mounted = true
 
-        const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
+        const subscriptions = getSubscriptions(this.props, this.ref, this.firebaseApp)
         const shouldSubscribe = keys(subscriptions).length > 0
 
         if (shouldSubscribe) {
@@ -62,8 +88,8 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
       }
 
       componentWillReceiveProps(nextProps) {
-        const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
-        const nextSubscriptions = computeSubscriptions(nextProps, this.ref, this.firebaseApp)
+        const subscriptions = getSubscriptions(this.props, this.ref, this.firebaseApp)
+        const nextSubscriptions = getSubscriptions(nextProps, this.ref, this.firebaseApp)
         const addedSubscriptions = pickBy(nextSubscriptions, (path, key) => !subscriptions[key])
         const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
         const changedSubscriptions = pickBy(nextSubscriptions, (path, key) => (
@@ -89,12 +115,18 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
           const subscriptionRef = applyMethods(this.ref(path), query)
           const update = snapshot => {
             if (this.mounted) {
+              const value = snapshot.val()
+
               this.setState(prevState => ({
                 subscriptionsState: {
                   ...prevState.subscriptionsState,
-                  [key]: snapshot.val(),
+                  [key]: value,
                 },
               }))
+
+              if (cache) {
+                valueCache.set(getQueryKey(path, query), value)
+              }
             }
           }
 

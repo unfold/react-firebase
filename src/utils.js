@@ -9,3 +9,7 @@ export const applyMethods = (object, methods) => (
 export const getDisplayName = Component => (
   Component.displayName || Component.name || 'Component'
 )
+
+export const getQueryKey = (path, query) => (
+  JSON.stringify({ path, ...query })
+)
