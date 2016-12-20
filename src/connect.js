@@ -27,7 +27,7 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
 
   const computeSubscriptions = (props, ref, firebaseApp) => {
     const firebaseProps = mapFirebase(props, ref, firebaseApp)
-    const subscriptions = pickBy(firebaseProps, prop => isString(prop) || prop.path)
+    const subscriptions = pickBy(firebaseProps, prop => isString(prop) || (prop && prop.path))
 
     invariant(
       isPlainObject(subscriptions),

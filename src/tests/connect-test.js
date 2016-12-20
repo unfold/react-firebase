@@ -185,4 +185,25 @@ test('Should pass props, ref and firebase to mapFirebaseToProps', assert => {
   assert.end()
 })
 
-test('Should update subscriptions when props change')
+test('Should update subscriptions when props change', assert => {
+  const mapFirebaseToProps = props => ({ foo: props.foo, bar: props.bar })
+
+  const firebaseApp = createMockApp()
+  const initial = renderStub(mapFirebaseToProps, firebaseApp, { foo: 'foo' })
+  assert.equal(initial.props.foo, 'foo value')
+  assert.equal(initial.props.bar, undefined)
+
+  const added = renderStub(mapFirebaseToProps, firebaseApp, { foo: 'foo', bar: 'bar' })
+  assert.equal(added.props.foo, 'foo value')
+  assert.equal(added.props.bar, 'bar value')
+
+  const changed = renderStub(mapFirebaseToProps, firebaseApp, { foo: 'foo', bar: 'baz' })
+  assert.equal(changed.props.foo, 'foo value')
+  assert.equal(changed.props.bar, 'baz value')
+
+  const removed = renderStub(mapFirebaseToProps, firebaseApp, { bar: 'baz' })
+  assert.equal(removed.props.foo, undefined)
+  assert.equal(removed.props.bar, 'baz value')
+
+  assert.end()
+})
