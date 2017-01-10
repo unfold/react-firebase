@@ -3,17 +3,17 @@ import { firebaseAppShape } from './PropTypes'
 
 export default class Provider extends Component {
   static propTypes = {
-    firebase: firebaseAppShape,
+    firebaseApp: firebaseAppShape,
     children: PropTypes.element.isRequired,
   }
 
   static childContextTypes = {
-    firebase: firebaseAppShape,
+    firebaseApp: firebaseAppShape,
   }
 
   getChildContext() {
     return {
-      firebase: this.props.firebase,
+      firebaseApp: this.props.firebaseApp,
     }
   }
 
