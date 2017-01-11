@@ -1,7 +1,8 @@
-import firebase from 'firebase'
-import invariant from 'invariant'
 import { Component, createElement } from 'react'
+import invariant from 'invariant'
 import { isFunction, isPlainObject, isString, keys, pickBy, omitBy, reduce } from 'lodash'
+import firebase from 'firebase/app'
+import 'firebase/database'
 import { firebaseAppShape } from './PropTypes'
 import { applyMethods, getDisplayName } from './utils'
 
