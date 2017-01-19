@@ -2,37 +2,20 @@
 
 import 'jsdom-global/register'
 import React, { Component } from 'react'
+import firebase from 'firebase/app'
 import test from 'tape'
 import { findDOMNode, unmountComponentAtNode } from 'react-dom'
 import { findRenderedComponentWithType, renderIntoDocument } from 'react-addons-test-utils'
-
 import connect from '../connect'
-
-class Passthrough extends Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    return <div />
-  }
-}
-
-const createMockSnapshot = (val, ...otherProps) => ({
-  ...otherProps,
-  val: () => val,
-})
-
-const defaultDatabaseProps = {
-  ref: path => ({
-    on: (event, callback) => (
-      callback(createMockSnapshot(`${path} value`))
-    ),
-  }),
-}
-
-const createMockApp = (dataBaseProps = defaultDatabaseProps, ...otherProps) => ({
-  ...otherProps,
-  database: () => dataBaseProps,
-})
+import { createMockApp, createMockSnapshot } from './helpers'
 
 const renderStub = (mapFirebaseToProps, firebaseApp, props) => {
+  class Passthrough extends Component { // eslint-disable-line react/prefer-stateless-function
+    render() {
+      return <div />
+    }
+  }
+
   const WrappedComponent = connect(mapFirebaseToProps)(Passthrough)
   const container = renderIntoDocument(<WrappedComponent {...props} firebaseApp={firebaseApp} />)
   const stub = findRenderedComponentWithType(container, Passthrough)
@@ -44,15 +27,22 @@ const renderStub = (mapFirebaseToProps, firebaseApp, props) => {
   }
 }
 
-test('Should throw if no Firebase app instance was found either globally, in props or context', assert => {
+test('Should throw if no initialized Firebase app instance was found', assert => {
   const errorPattern = /No Firebase App/
 
-  assert.throws(() => {
+  // Default app instance
+  assert.doesNotThrow(() => {
+    const defaultApp = firebase.initializeApp({})
     const WrappedComponent = connect()('div')
+    const container = renderIntoDocument(<WrappedComponent />)
+    const stub = findRenderedComponentWithType(container, WrappedComponent)
 
-    renderIntoDocument(<WrappedComponent />)
+    assert.equal(stub.firebaseApp, defaultApp)
+
+    defaultApp.delete()
   }, errorPattern)
 
+  // Props
   assert.doesNotThrow(() => {
     const firebaseApp = createMockApp()
     const WrappedComponent = connect()(props => {
@@ -169,10 +159,10 @@ test('Should unsubscribe when component unmounts', assert => {
   assert.end()
 })
 
-test('Should pass props, ref and firebase to mapFirebaseToProps', assert => {
-  const mapFirebaseToProps = (props, ref, firebase) => {
+test('Should pass props, ref and firebaseApp to mapFirebaseToProps', assert => {
+  const mapFirebaseToProps = (props, ref, firebaseApp) => {
     assert.deepEqual(props.foo, 'foo prop')
-    assert.equal(typeof firebase.database, 'function')
+    assert.equal(typeof firebaseApp.database, 'function')
     assert.equal(typeof ref, 'function')
 
     return { foo: 'foo' }
