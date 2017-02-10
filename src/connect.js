@@ -1,6 +1,6 @@
 import { Component, createElement } from 'react'
 import invariant from 'invariant'
-import { isFunction, isPlainObject, isString, keys, pickBy, omitBy, reduce } from 'lodash'
+import { isFunction, isPlainObject, isString, keys, pickBy, omit, reduce } from 'lodash'
 import firebase from 'firebase/app'
 import 'firebase/database'
 import { firebaseAppShape } from './PropTypes'
@@ -120,11 +120,11 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
           const subscription = listeners[key]
           subscription.unsubscribe()
 
-          return omitBy(listeners, key)
+          return omit(listeners, key)
         }, this.listeners)
 
         this.setState(prevState => ({
-          subscriptionsState: omitBy(prevState.subscriptionsState, subscriptionKeys),
+          subscriptionsState: omit(prevState.subscriptionsState, subscriptionKeys),
         }))
       }
 

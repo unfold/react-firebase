@@ -154,7 +154,9 @@ test('Should unsubscribe when component unmounts', assert => {
   const firebaseApp = createMockApp(mockDatabase)
   const { container } = renderStub(mapFirebaseToProps, firebaseApp)
 
+  assert.notEqual(container.listeners.baz, undefined)
   unmountComponentAtNode(findDOMNode(container).parentNode)
+  assert.equal(container.listeners.baz, undefined)
 
   assert.end()
 })
