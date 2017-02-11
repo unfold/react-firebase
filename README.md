@@ -114,6 +114,7 @@ If you *really* need to, you can manually pass `firebaseApp` as a prop to every 
 #### Example
 
 ```js
+import { Provider } from 'react-firebase'
 import { initializeApp } from 'firebase'
 
 const firebaseApp = initializeApp({
