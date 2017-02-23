@@ -38,7 +38,7 @@ export default connect((props, ref) => ({
 
 ## Usage
 
-### `connect([mapFirebaseToProps])`
+### `connect([mapFirebaseToProps], [mergeProps])`
 
 Connects a React component to a Firebase App reference.
 
@@ -48,9 +48,14 @@ It does not modify the component class passed to it. Instead, it *returns* a new
 
 * [`mapFirebaseToProps(props, ref, firebaseApp): subscriptions`] \(*Object or Function*): Its result, or the argument itself must be a plain object. Each value must either be a path to a location in your database, a query object or a function. If you omit it, the default implementation just passes `firebaseApp` as a prop to your component.
 
+
+* [`mergeProps(ownProps, firebaseProps): props`] \(*Function*): If specified, it is passed the parent `props` and current subscription state merged with the result of `mapFirebaseToProps()`. The plain object you return from it will be passed as props to the wrapped component. If you omit it, `Object.assign({}, ownProps, firebaseProps)` is used by default.
+
 #### Returns
 
 A React component class that passes subscriptions and actions as props to your component according to the specified options.
+
+> Note: "actions" are any function values returned by `mapFirebaseToProps()` which are typically used to modify data in Firebase.
 
 ##### Static Properties
 

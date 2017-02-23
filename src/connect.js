@@ -6,10 +6,9 @@ import 'firebase/database'
 import { firebaseAppShape } from './PropTypes'
 import { applyMethods, getDisplayName } from './utils'
 
-const mergeProps = (actionProps, subscriptionProps, ownProps) => ({
+const defaultMergeProps = (ownProps, firebaseProps) => ({
   ...ownProps,
-  ...actionProps,
-  ...subscriptionProps,
+  ...firebaseProps,
 })
 
 const mapSubscriptionsToQueries = subscriptions => (
@@ -21,7 +20,7 @@ const mapSubscriptionsToQueries = subscriptions => (
 
 const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({ firebaseApp })
 
-export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
+export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = defaultMergeProps) => {
   const mapFirebase = (
     isFunction(mapFirebaseToProps) ? mapFirebaseToProps : () => mapFirebaseToProps
   )
@@ -132,7 +131,7 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps) => {
         const firebaseProps = mapFirebase(this.props, this.ref, this.firebaseApp)
         const actionProps = pickBy(firebaseProps, isFunction)
         const subscriptionProps = this.state.subscriptionsState
-        const props = mergeProps(actionProps, subscriptionProps, this.props)
+        const props = mergeProps(this.props, { ...actionProps, ...subscriptionProps })
 
         return createElement(WrappedComponent, props)
       }
