@@ -5,14 +5,16 @@
   "author": "Unfold <github@unfold.no> (http://github.com/unfold)",
   "license": "MIT",
   "scripts": {
-    "build": "babel src --ignore src/**/*-test.js --out-dir lib",
     "lint": "eslint src examples",
-    "prepublish": "npm run build",
-    "start": "node -r babel-register examples/server",
     "test": "node -r babel-register $(npm bin)/tape src/**/*-test.js",
-    "test:coverage": "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js"
+    "test:coverage": "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js",
+    "prepublish": "npm run build",
+    "build": "babel src --ignore tests --out-dir lib",
+    "postbuild": "node -r babel-register scripts/build-umd.js",
+    "start": "node -r babel-register examples/server"
   },
   "main": "./lib/index.js",
+  "browser": "./lib/umd.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/unfold/react-firebase.git"
@@ -59,7 +61,7 @@
     "react-addons-test-utils": "^0.14.8 || ^15.0.0",
     "react-dom": "^0.14.8 || ^15.0.0",
     "tape": "^4.5.1",
-    "webpack": "^1.12.14",
+    "webpack": "^2.2.1",
     "webpack-dev-middleware": "^1.6.1"
   },
   "dependencies": {
