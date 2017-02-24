@@ -1,6 +1,6 @@
 {
   "name": "react-firebase",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "React bindings for Firebase",
   "author": "Unfold <github@unfold.no> (http://github.com/unfold)",
   "license": "MIT",
