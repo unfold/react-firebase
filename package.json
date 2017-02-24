@@ -14,7 +14,6 @@
     "start": "node -r babel-register examples/server"
   },
   "main": "./lib/index.js",
-  "browser": "./lib/umd.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/unfold/react-firebase.git"
