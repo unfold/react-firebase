@@ -3,8 +3,8 @@ import 'jsdom-global/register'
 import React, { Component } from 'react'
 import test from 'tape'
 import { findRenderedComponentWithType, renderIntoDocument } from 'react-addons-test-utils'
-import connect from '../connect'
-import Provider from '../Provider'
+import connect from '../src/connect'
+import Provider from '../src/Provider'
 import { createMockApp } from './helpers'
 
 test('Should use firebaseApp from context if provided', assert => {

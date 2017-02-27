@@ -1,8 +1,7 @@
-import { Component, createElement } from 'react'
+import { Component, PropTypes, createElement } from 'react'
 import invariant from 'invariant'
 import firebase from 'firebase/app'
 import 'firebase/database'
-import { firebaseAppShape } from './PropTypes'
 import { createQueryRef, getDisplayName, mapValues, pickBy } from './utils'
 
 const defaultMergeProps = (ownProps, firebaseProps) => ({
@@ -134,7 +133,9 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
     FirebaseConnect.defaultProps = Component.defaultProps
     FirebaseConnect.displayName = `FirebaseConnect(${getDisplayName(WrappedComponent)})`
     FirebaseConnect.contextTypes = FirebaseConnect.propTypes = {
-      firebaseApp: firebaseAppShape,
+      firebaseApp: PropTypes.shape({
+        database: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
+      }),
     }
 
     return FirebaseConnect

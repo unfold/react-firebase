@@ -6,7 +6,7 @@ import firebase from 'firebase/app'
 import test from 'tape'
 import { findDOMNode, unmountComponentAtNode } from 'react-dom'
 import { findRenderedComponentWithType, renderIntoDocument } from 'react-addons-test-utils'
-import connect from '../connect'
+import connect from '../src/connect'
 import { createMockApp, createMockSnapshot } from './helpers'
 
 const renderStub = ({ mapFirebaseToProps, mergeProps, firebaseApp }, props) => {

@@ -3,9 +3,9 @@
 import webpack from 'webpack'
 
 webpack({
-  entry: './lib',
+  entry: './src',
   output: {
-    filename: './lib/umd.js',
+    filename: './umd.js',
     libraryTarget: 'umd',
     library: 'reactFirebase',
   },
@@ -25,6 +25,11 @@ webpack({
       commonjs: 'firebase/app',
       commonjs2: 'firebase/app',
     },
+  },
+  module: {
+    loaders: [
+      { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' },
+    ],
   },
   plugins: [
     new webpack.optimize.UglifyJsPlugin(),

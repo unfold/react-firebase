@@ -6,14 +6,16 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint src examples",
-    "test": "node -r babel-register $(npm bin)/tape src/**/*-test.js",
+    "test": "node -r babel-register $(npm bin)/tape tests/**/*-test.js",
     "test:coverage": "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js",
-    "prepublish": "npm run build",
-    "build": "babel src --ignore tests --out-dir lib",
+    "clean": "node -e 'console.log(require(\"./package\").files.join(\"\\n\"))' | xargs rm",
+    "build": "babel src --ignore tests --out-dir .",
     "postbuild": "node -r babel-register scripts/build-umd.js",
+    "prepublish": "npm run build",
+    "postpublish": "npm run clean",
     "start": "node -r babel-register examples/server"
   },
-  "main": "./lib/index.js",
+  "unpkg": "umd.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/unfold/react-firebase.git"
@@ -30,7 +32,11 @@
     "extends": "@unfold/eslint-config"
   },
   "files": [
-    "lib"
+    "index.js",
+    "Provider.js",
+    "connect.js",
+    "utils.js",
+    "umd.js"
   ],
   "keywords": [
     "react",
