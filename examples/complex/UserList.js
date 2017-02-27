@@ -1,14 +1,13 @@
 import React, { PropTypes } from 'react'
-import { map } from 'lodash'
 import { connect } from '../../src'
 import { getSandboxedPath } from '../common'
 import TaskSummary from './TaskSummary'
 
 const complexPath = getSandboxedPath('complex')
 
-const UserTaskSummary = ({ tasks }) => (
+const UserTaskSummary = ({ tasks = {} }) => (
   <span>
-    {map(tasks, (task, taskId) => (
+    {Object.keys(tasks).map(taskId => (
       <TaskSummary key={taskId} taskId={taskId} />
     ))}
   </span>
@@ -26,10 +25,10 @@ UserListItem.propTypes = {
   user: PropTypes.object,
 }
 
-const UserList = ({ users }) => (
+const UserList = ({ users = {} }) => (
   <div>
     <ul>
-      {map(users, (user, userId) => <UserListItem key={userId} user={user} />)}
+      {Object.keys(users).map(userId => <UserListItem key={userId} user={users[userId]} />)}
     </ul>
   </div>
 )

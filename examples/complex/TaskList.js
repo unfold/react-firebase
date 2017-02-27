@@ -1,5 +1,4 @@
 import React, { PropTypes } from 'react'
-import { map } from 'lodash'
 import { connect } from '../../src'
 import { getSandboxedPath } from '../common'
 import TaskSummary from './TaskSummary'
@@ -14,10 +13,10 @@ TaskListItem.propTypes = {
   taskId: PropTypes.string.isRequired,
 }
 
-const TaskList = ({ tasks }) => (
+const TaskList = ({ tasks = {} }) => (
   <div>
     <ul>
-      {map(tasks, (task, key) => <TaskListItem key={key} taskId={key} />)}
+      {Object.keys(tasks).map(key => <TaskListItem key={key} taskId={key} />)}
     </ul>
   </div>
 )

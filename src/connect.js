@@ -1,10 +1,9 @@
 import { Component, createElement } from 'react'
 import invariant from 'invariant'
-import { isFunction, isPlainObject, isString, keys, pickBy, omit, reduce } from 'lodash'
 import firebase from 'firebase/app'
 import 'firebase/database'
 import { firebaseAppShape } from './PropTypes'
-import { applyMethods, getDisplayName } from './utils'
+import { createQueryRef, getDisplayName, mapValues, pickBy } from './utils'
 
 const defaultMergeProps = (ownProps, firebaseProps) => ({
   ...ownProps,
@@ -12,25 +11,22 @@ const defaultMergeProps = (ownProps, firebaseProps) => ({
 })
 
 const mapSubscriptionsToQueries = subscriptions => (
-  reduce(subscriptions, (queries, subscription, key) => ({
-    ...queries,
-    [key]: isString(subscription) ? { path: subscription } : subscription,
-  }), {})
+  mapValues(subscriptions, value => (typeof value === 'string' ? { path: value } : value))
 )
 
 const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({ firebaseApp })
 
 export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = defaultMergeProps) => {
   const mapFirebase = (
-    isFunction(mapFirebaseToProps) ? mapFirebaseToProps : () => mapFirebaseToProps
+    typeof mapFirebaseToProps === 'function' ? mapFirebaseToProps : () => mapFirebaseToProps
   )
 
   const computeSubscriptions = (props, ref, firebaseApp) => {
     const firebaseProps = mapFirebase(props, ref, firebaseApp)
-    const subscriptions = pickBy(firebaseProps, prop => isString(prop) || (prop && prop.path))
+    const subscriptions = pickBy(firebaseProps, prop => typeof prop === 'string' || (prop && prop.path))
 
     invariant(
-      isPlainObject(subscriptions),
+      typeof subscriptions === 'object',
       '`mapFirebaseToProps` must return an object. Instead received %s.',
       subscriptions
     )
@@ -54,7 +50,7 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         this.mounted = true
 
         const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
-        const shouldSubscribe = keys(subscriptions).length > 0
+        const shouldSubscribe = Object.keys(subscriptions).length > 0
 
         if (shouldSubscribe) {
           this.subscribe(subscriptions)
@@ -78,15 +74,14 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         this.mounted = false
 
         if (this.listeners) {
-          this.unsubscribe()
+          this.unsubscribe(this.listeners)
         }
       }
 
       subscribe(subscriptions) {
         const queries = mapSubscriptionsToQueries(subscriptions)
-
-        this.listeners = reduce(queries, (listeners, { path, ...query }, key) => {
-          const subscriptionRef = applyMethods(this.ref(path), query)
+        const nextListeners = mapValues(queries, ({ path, ...query }, key) => {
+          const subscriptionRef = createQueryRef(this.ref(path), query)
           const update = snapshot => {
             if (this.mounted) {
               this.setState(prevState => ({
@@ -98,38 +93,36 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
             }
           }
 
-          const unsubscribe = () => subscriptionRef.off('value', update)
-
           subscriptionRef.on('value', update)
 
           return {
-            ...listeners,
-            [key]: {
-              path,
-              unsubscribe,
-            },
+            path,
+            unsubscribe: () => subscriptionRef.off('value', update),
           }
-        }, this.listeners)
+        })
+
+        this.listeners = nextListeners
       }
 
-      unsubscribe(subscriptions = this.listeners) {
-        const subscriptionKeys = keys(subscriptions)
+      unsubscribe(subscriptions) {
+        const nextListeners = { ...this.listeners }
+        const nextSubscriptionsState = { ...this.state.subscriptionsState }
 
-        this.listeners = reduce(subscriptionKeys, (listeners, key) => {
-          const subscription = listeners[key]
+        Object.keys(subscriptions).forEach(key => {
+          const subscription = this.listeners[key]
           subscription.unsubscribe()
 
-          return omit(listeners, key)
-        }, this.listeners)
+          delete nextListeners[key]
+          delete nextSubscriptionsState[key]
+        })
 
-        this.setState(prevState => ({
-          subscriptionsState: omit(prevState.subscriptionsState, subscriptionKeys),
-        }))
+        this.listeners = nextListeners
+        this.setState({ subscriptionsState: nextSubscriptionsState })
       }
 
       render() {
         const firebaseProps = mapFirebase(this.props, this.ref, this.firebaseApp)
-        const actionProps = pickBy(firebaseProps, isFunction)
+        const actionProps = pickBy(firebaseProps, prop => typeof prop === 'function')
         const subscriptionProps = this.state.subscriptionsState
         const props = mergeProps(this.props, { ...actionProps, ...subscriptionProps })
 

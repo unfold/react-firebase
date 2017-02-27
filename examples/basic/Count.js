@@ -1,16 +1,15 @@
 import React, { PropTypes } from 'react'
-import { partial } from 'lodash'
 import { connect } from '../../src'
 import { getSandboxedPath } from '../common'
 
 const countPath = getSandboxedPath('count')
 
-const Count = ({ count, setCount }) => (
+const Count = ({ count = 0, setCount }) => (
   <div>
-    <p>Count: {count || 0}</p>
+    <p>Count: {count}</p>
 
-    <button onClick={partial(setCount, count - 1)}>Decrement</button>
-    <button onClick={partial(setCount, count + 1)}>Increment</button>
+    <button onClick={() => setCount(count - 1)}>Decrement</button>
+    <button onClick={() => setCount(count + 1)}>Increment</button>
   </div>
 )
 
