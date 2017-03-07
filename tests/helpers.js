@@ -8,6 +8,7 @@ const defaultDatabaseProps = {
     on: (event, callback) => (
       callback(createMockSnapshot(`${path} value`))
     ),
+    off: () => {},
   }),
 }
 

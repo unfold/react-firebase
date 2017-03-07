@@ -9,21 +9,41 @@ import { findRenderedComponentWithType, renderIntoDocument } from 'react-addons-
 import connect from '../src/connect'
 import { createMockApp, createMockSnapshot } from './helpers'
 
-const renderStub = ({ mapFirebaseToProps, mergeProps, firebaseApp }, props) => {
-  class Passthrough extends Component { // eslint-disable-line react/prefer-stateless-function
+const renderStub = ({ mapFirebaseToProps, mergeProps, firebaseApp }, initialProps) => {
+  class WrappedComponent extends Component { // eslint-disable-line react/prefer-stateless-function
     render() {
       return <div />
     }
   }
 
-  const WrappedComponent = connect(mapFirebaseToProps, mergeProps)(Passthrough)
-  const container = renderIntoDocument(<WrappedComponent {...props} firebaseApp={firebaseApp} />)
-  const stub = findRenderedComponentWithType(container, Passthrough)
+  const ConnectedComponent = connect(mapFirebaseToProps, mergeProps)(WrappedComponent)
+
+  class ParentComponent extends Component { // eslint-disable-line react/no-multi-comp
+    state = {
+      childProps: initialProps,
+    }
+
+    render() {
+      return (
+        <ConnectedComponent
+          {...this.state.childProps}
+          ref={ref => (this.connectedComponent = ref)}
+          firebaseApp={firebaseApp}
+        />
+      )
+    }
+  }
+
+  const parentComponent = renderIntoDocument(<ParentComponent />)
+  const connectedComponent = parentComponent.connectedComponent
+  const wrappedComponent = findRenderedComponentWithType(parentComponent, WrappedComponent)
 
   return {
-    container,
-    props: stub.props,
-    state: container.state.subscriptionsState,
+    getSubscriptionState: () => connectedComponent.state.subscriptionsState,
+    getProps: () => wrappedComponent.props,
+    getListeners: () => connectedComponent.listeners,
+    setProps: props => parentComponent.setState({ childProps: props }),
+    unmount: () => unmountComponentAtNode(findDOMNode(parentComponent).parentNode),
   }
 }
 
@@ -34,8 +54,8 @@ test('Should throw if no initialized Firebase app instance was found', assert =>
   assert.doesNotThrow(() => {
     const defaultApp = firebase.initializeApp({})
     const WrappedComponent = connect()(() => <div />)
-    const container = renderIntoDocument(<WrappedComponent />)
-    const stub = findRenderedComponentWithType(container, WrappedComponent)
+    const connectedComponent = renderIntoDocument(<WrappedComponent />)
+    const stub = findRenderedComponentWithType(connectedComponent, WrappedComponent)
 
     assert.equal(stub.firebaseApp, defaultApp)
 
@@ -72,10 +92,10 @@ test('Should subscribe to a single path', assert => {
 
   const mapFirebaseToProps = () => ({ foo: 'foo' })
   const firebaseApp = createMockApp(mockDatabase)
-  const { state, props } = renderStub({ mapFirebaseToProps, firebaseApp })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(state, { foo: { bar: 'bar' } })
-  assert.deepEqual(props.foo, { bar: 'bar' })
+  assert.deepEqual(stub.getSubscriptionState(), { foo: { bar: 'bar' } })
+  assert.deepEqual(stub.getProps().foo, { bar: 'bar' })
   assert.end()
 })
 
@@ -94,10 +114,10 @@ test('Should return null if a subscribed path does not exist', assert => {
 
   const mapFirebaseToProps = () => ({ foo: 'foo' })
   const firebaseApp = createMockApp(mockDatabase)
-  const { state, props } = renderStub({ mapFirebaseToProps, firebaseApp })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(state, { foo: null })
-  assert.equal(props.foo, null)
+  assert.deepEqual(stub.getSubscriptionState(), { foo: null })
+  assert.equal(stub.getProps().foo, null)
   assert.end()
 })
 
@@ -115,10 +135,10 @@ test('Should not pass unresolved subscriptions from result of mapFirebaseToProps
 
   const mapFirebaseToProps = () => ({ foo: 'foo' })
   const firebaseApp = createMockApp(mockDatabase)
-  const first = renderStub({ mapFirebaseToProps, firebaseApp })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.equal(first.state, null)
-  assert.equal(first.props.foo, undefined)
+  assert.equal(stub.getSubscriptionState(), null)
+  assert.equal(stub.getProps().foo, undefined)
   assert.end()
 })
 
@@ -155,10 +175,10 @@ test('Should subscribe to a query', assert => {
   })
 
   const firebaseApp = createMockApp(mockDatabase)
-  const { state, props } = renderStub({ mapFirebaseToProps, firebaseApp })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(state, { bar: 'bar value' })
-  assert.equal(props.bar, 'bar value')
+  assert.deepEqual(stub.getSubscriptionState(), { bar: 'bar value' })
+  assert.equal(stub.getProps().bar, 'bar value')
   assert.end()
 })
 
@@ -169,11 +189,11 @@ test('Should not subscribe to functions', assert => {
   })
 
   const firebaseApp = createMockApp()
-  const { state, props } = renderStub({ mapFirebaseToProps, firebaseApp })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(state, { foo: 'foo value' })
-  assert.equal(props.foo, 'foo value')
-  assert.equal(typeof props.addFoo, 'function')
+  assert.deepEqual(stub.getSubscriptionState(), { foo: 'foo value' })
+  assert.equal(stub.getProps().foo, 'foo value')
+  assert.equal(typeof stub.getProps().addFoo, 'function')
   assert.end()
 })
 
@@ -195,12 +215,11 @@ test('Should unsubscribe when component unmounts', assert => {
 
   const mapFirebaseToProps = () => ({ baz: 'baz' })
   const firebaseApp = createMockApp(mockDatabase)
-  const { container } = renderStub({ mapFirebaseToProps, firebaseApp })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.notEqual(container.listeners.baz, undefined)
-  unmountComponentAtNode(findDOMNode(container).parentNode)
-  assert.equal(container.listeners.baz, undefined)
-
+  assert.notEqual(stub.getListeners().baz, undefined)
+  assert.equal(stub.unmount(), true)
+  assert.equal(stub.getListeners().baz, undefined)
   assert.end()
 })
 
@@ -214,32 +233,40 @@ test('Should pass props, ref and firebaseApp to mapFirebaseToProps', assert => {
   }
 
   const firebaseApp = createMockApp()
-  const { props } = renderStub({ mapFirebaseToProps, firebaseApp }, { foo: 'foo prop' })
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp }, { foo: 'foo prop' })
 
-  assert.equal(props.foo, 'foo value')
+  assert.equal(stub.getProps().foo, 'foo value')
   assert.end()
 })
 
 test('Should update subscriptions when props change', assert => {
   const mapFirebaseToProps = props => ({ foo: props.foo, bar: props.bar })
   const firebaseApp = createMockApp()
-  const stubOptions = { mapFirebaseToProps, firebaseApp }
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  const initial = renderStub(stubOptions, { foo: 'foo' })
-  assert.equal(initial.props.foo, 'foo value')
-  assert.equal(initial.props.bar, undefined)
+  stub.setProps({ foo: 'foo' })
+  assert.equal(stub.getProps().foo, 'foo value')
+  assert.equal(stub.getProps().bar, undefined)
+  assert.equal(stub.getListeners().foo.path, 'foo')
+  assert.equal(stub.getListeners().bar, undefined)
 
-  const added = renderStub(stubOptions, { foo: 'foo', bar: 'bar' })
-  assert.equal(added.props.foo, 'foo value')
-  assert.equal(added.props.bar, 'bar value')
+  stub.setProps({ foo: 'foo', bar: 'bar' })
+  assert.equal(stub.getProps().foo, 'foo value')
+  assert.equal(stub.getProps().bar, 'bar value')
+  assert.equal(stub.getListeners().foo.path, 'foo')
+  assert.equal(stub.getListeners().bar.path, 'bar')
 
-  const changed = renderStub(stubOptions, { foo: 'foo', bar: 'baz' })
-  assert.equal(changed.props.foo, 'foo value')
-  assert.equal(changed.props.bar, 'baz value')
+  stub.setProps({ foo: 'foo', bar: 'baz' })
+  assert.equal(stub.getProps().foo, 'foo value')
+  assert.equal(stub.getProps().bar, 'baz value')
+  assert.equal(stub.getListeners().foo.path, 'foo')
+  assert.equal(stub.getListeners().bar.path, 'baz')
 
-  const removed = renderStub(stubOptions, { bar: 'baz' })
-  assert.equal(removed.props.foo, undefined)
-  assert.equal(removed.props.bar, 'baz value')
+  stub.setProps({ bar: 'baz' })
+  assert.equal(stub.getProps().foo, undefined)
+  assert.equal(stub.getProps().bar, 'baz value')
+  assert.equal(stub.getListeners().foo, undefined)
+  assert.equal(stub.getListeners().bar.path, 'baz')
 
   assert.end()
 })
@@ -249,8 +276,8 @@ test('Should use custom mergeProps function if provided', assert => {
   const mergeProps = () => ({ bar: 'bar merge props' })
 
   const firebaseApp = createMockApp()
-  const { props } = renderStub({ mapFirebaseToProps, mergeProps, firebaseApp }, { foo: 'foo prop' })
+  const stub = renderStub({ mapFirebaseToProps, mergeProps, firebaseApp }, { foo: 'foo prop' })
 
-  assert.deepEqual(props, { bar: 'bar merge props' })
+  assert.deepEqual(stub.getProps(), { bar: 'bar merge props' })
   assert.end()
 })

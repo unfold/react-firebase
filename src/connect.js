@@ -46,14 +46,10 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
       }
 
       componentDidMount() {
-        this.mounted = true
-
         const subscriptions = computeSubscriptions(this.props, this.ref, this.firebaseApp)
-        const shouldSubscribe = Object.keys(subscriptions).length > 0
 
-        if (shouldSubscribe) {
-          this.subscribe(subscriptions)
-        }
+        this.mounted = true
+        this.subscribe(subscriptions)
       }
 
       componentWillReceiveProps(nextProps) {
@@ -78,6 +74,10 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
       }
 
       subscribe(subscriptions) {
+        if (Object.keys(subscriptions).length < 1) {
+          return
+        }
+
         const queries = mapSubscriptionsToQueries(subscriptions)
         const nextListeners = mapValues(queries, ({ path, ...query }, key) => {
           const subscriptionRef = createQueryRef(this.ref(path), query)
@@ -100,10 +100,14 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
           }
         })
 
-        this.listeners = nextListeners
+        this.listeners = { ...this.listeners, ...nextListeners }
       }
 
       unsubscribe(subscriptions) {
+        if (Object.keys(subscriptions).length < 1) {
+          return
+        }
+
         const nextListeners = { ...this.listeners }
         const nextSubscriptionsState = { ...this.state.subscriptionsState }
 
