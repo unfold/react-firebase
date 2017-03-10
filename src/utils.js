@@ -34,3 +34,13 @@ export const createQueryRef = (ref, query) => (
 export const getDisplayName = Component => (
   Component.displayName || Component.name || 'Component'
 )
+
+export const mapSnapshotToValue = snapshot => {
+  const result = {}
+
+  snapshot.forEach(child => {
+    result[child.key] = child.val()
+  })
+
+  return result
+}

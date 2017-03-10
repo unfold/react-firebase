@@ -182,6 +182,54 @@ test('Should subscribe to a query', assert => {
   assert.end()
 })
 
+test('Should correctly order subscription values if orderByChild was passed to query', assert => {
+  const mockDatabase = {
+    ref: path => {
+      assert.equal(path, 'bar')
+
+      return mockDatabase
+    },
+    orderByChild: value => {
+      assert.equal(value, 'order')
+
+      return mockDatabase
+    },
+    on: (event, callback) => {
+      assert.equal(event, 'value')
+
+      const snapshot = {
+        val: () => ({
+          alpha: { order: 3 },
+          beta: { order: 2 },
+          gamma: { order: 1 },
+        }),
+
+        forEach: iterator => {
+          iterator({ key: 'gamma', val: () => ({ order: 1 }) })
+          iterator({ key: 'beta', val: () => ({ order: 2 }) })
+          iterator({ key: 'alpha', val: () => ({ order: 3 }) })
+        },
+      }
+
+      callback(snapshot)
+    },
+  }
+
+  const mapFirebaseToProps = () => ({
+    bar: {
+      path: 'bar',
+      orderByChild: 'order',
+    },
+  })
+
+  const firebaseApp = createMockApp(mockDatabase)
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
+
+  assert.deepEqual(Object.keys(stub.getSubscriptionState().bar), ['gamma', 'beta', 'alpha'])
+  assert.deepEqual(Object.keys(stub.getProps().bar), ['gamma', 'beta', 'alpha'])
+  assert.end()
+})
+
 test('Should not subscribe to functions', assert => {
   const mapFirebaseToProps = (props, ref) => ({
     foo: 'foo',

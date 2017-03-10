@@ -2,7 +2,7 @@ import { Component, PropTypes, createElement } from 'react'
 import invariant from 'invariant'
 import firebase from 'firebase/app'
 import 'firebase/database'
-import { createQueryRef, getDisplayName, mapValues, pickBy } from './utils'
+import { createQueryRef, getDisplayName, mapValues, mapSnapshotToValue, pickBy } from './utils'
 
 const defaultMergeProps = (ownProps, firebaseProps) => ({
   ...ownProps,
@@ -80,13 +80,16 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
 
         const queries = mapSubscriptionsToQueries(subscriptions)
         const nextListeners = mapValues(queries, ({ path, ...query }, key) => {
+          const containsOrderBy = Object.keys(query).some(queryKey => queryKey.startsWith('orderBy'))
           const subscriptionRef = createQueryRef(this.ref(path), query)
           const update = snapshot => {
             if (this.mounted) {
+              const value = containsOrderBy ? mapSnapshotToValue(snapshot) : snapshot.val()
+
               this.setState(prevState => ({
                 subscriptionsState: {
                   ...prevState.subscriptionsState,
-                  [key]: snapshot.val(),
+                  [key]: value,
                 },
               }))
             }
