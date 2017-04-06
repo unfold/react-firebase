@@ -23,14 +23,6 @@
   "bugs": {
     "url": "https://github.com/unfold/react-firebase/issues"
   },
-  "babel": {
-    "presets": [
-      "@unfold/babel-preset"
-    ]
-  },
-  "eslintConfig": {
-    "extends": "@unfold/eslint-config"
-  },
   "files": [
     "index.js",
     "Provider.js",
