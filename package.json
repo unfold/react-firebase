@@ -62,7 +62,8 @@
     "webpack-dev-middleware": "^1.6.1"
   },
   "dependencies": {
-    "invariant": "^2.0.0"
+    "invariant": "^2.0.0",
+    "prop-types": "^15.5.8"
   },
   "peerDependencies": {
     "firebase": "^3.6.1",
