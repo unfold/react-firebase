@@ -10,7 +10,8 @@ import connect from '../src/connect'
 import { createMockApp, createMockSnapshot } from './helpers'
 
 const renderStub = ({ mapFirebaseToProps, mergeProps, firebaseApp }, initialProps) => {
-  class WrappedComponent extends Component { // eslint-disable-line react/prefer-stateless-function
+  // eslint-disable-next-line react/prefer-stateless-function
+  class WrappedComponent extends Component {
     render() {
       return <div />
     }
@@ -18,7 +19,8 @@ const renderStub = ({ mapFirebaseToProps, mergeProps, firebaseApp }, initialProp
 
   const ConnectedComponent = connect(mapFirebaseToProps, mergeProps)(WrappedComponent)
 
-  class ParentComponent extends Component { // eslint-disable-line react/no-multi-comp
+  // eslint-disable-next-line react/no-multi-comp
+  class ParentComponent extends Component {
     state = {
       childProps: initialProps,
     }

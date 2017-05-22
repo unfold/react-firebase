@@ -8,7 +8,8 @@ import Provider from '../src/Provider'
 import { createMockApp } from './helpers'
 
 test('Should use firebaseApp from context if provided', assert => {
-  class Passthrough extends Component { // eslint-disable-line react/prefer-stateless-function
+  // eslint-disable-next-line react/prefer-stateless-function
+  class Passthrough extends Component {
     render() {
       return <div />
     }

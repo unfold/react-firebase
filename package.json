@@ -5,14 +5,15 @@
   "author": "Unfold <github@unfold.no> (http://github.com/unfold)",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint src",
+    "lint": "eslint '{src,scripts,tests}/**/*.js'",
     "test": "node -r babel-register $(npm bin)/tape tests/**/*-test.js",
     "test:coverage": "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js",
     "clean": "node -e 'console.log(require(\"./package\").files.join(\"\\n\"))' | xargs rm",
     "build": "babel src --ignore tests --out-dir .",
     "postbuild": "node -r babel-register scripts/build-umd.js",
     "prepublish": "npm run build",
-    "postpublish": "npm run clean"
+    "postpublish": "npm run clean",
+    "precommit": "lint-staged"
   },
   "unpkg": "umd.js",
   "repository": {
@@ -34,6 +35,12 @@
     "reactjs",
     "firebase"
   ],
+  "lint-staged": {
+    "{src,scripts,tests}/**/*.js": [
+      "prettier --trailing-comma es5 --single-quote --no-semi --print-width 100 --write",
+      "git add"
+    ]
+  },
   "homepage": "https://github.com/unfold/react-firebase",
   "devDependencies": {
     "@unfold/babel-preset": "^1.0.2",
@@ -49,9 +56,12 @@
     "eslint": "^3.10.2",
     "eslint-plugin-react": "^6.7.1",
     "firebase": "^3.6.1",
+    "husky": "^0.13.3",
     "isparta": "^4.0.0",
     "jsdom": "^9.8.3",
     "jsdom-global": "^2.1.0",
+    "lint-staged": "^3.4.2",
+    "prettier": "^1.3.1",
     "react": "^0.14.8 || ^15.0.0",
     "react-addons-test-utils": "^0.14.8 || ^15.0.0",
     "react-dom": "^0.14.8 || ^15.0.0",

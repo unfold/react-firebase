@@ -5,9 +5,7 @@ export const createMockSnapshot = (value, ...otherProps) => ({
 
 const defaultDatabaseProps = {
   ref: path => ({
-    on: (event, callback) => (
-      callback(createMockSnapshot(`${path} value`))
-    ),
+    on: (event, callback) => callback(createMockSnapshot(`${path} value`)),
     off: () => {},
   }),
 }
