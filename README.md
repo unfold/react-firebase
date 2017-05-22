@@ -36,6 +36,10 @@ export default connect((props, ref) => ({
 }))(Counter)
 ```
 
+## Test for yourself on Codepen.io
+- [Get started template](https://codepen.io/einarlove/pen/peoMbp?editors=1010)
+- [Counter Example](https://codepen.io/einarlove/pen/RpwXGP?editors=1010)
+
 ## Usage
 
 ### `connect([mapFirebaseToProps], [mergeProps])`

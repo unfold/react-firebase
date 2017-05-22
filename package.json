@@ -5,15 +5,14 @@
   "author": "Unfold <github@unfold.no> (http://github.com/unfold)",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint src examples",
+    "lint": "eslint src",
     "test": "node -r babel-register $(npm bin)/tape tests/**/*-test.js",
     "test:coverage": "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js",
     "clean": "node -e 'console.log(require(\"./package\").files.join(\"\\n\"))' | xargs rm",
     "build": "babel src --ignore tests --out-dir .",
     "postbuild": "node -r babel-register scripts/build-umd.js",
     "prepublish": "npm run build",
-    "postpublish": "npm run clean",
-    "start": "node -r babel-register examples/server"
+    "postpublish": "npm run clean"
   },
   "unpkg": "umd.js",
   "repository": {
@@ -49,7 +48,6 @@
     "babel-register": "^6.18.0",
     "eslint": "^3.10.2",
     "eslint-plugin-react": "^6.7.1",
-    "express": "^4.13.4",
     "firebase": "^3.6.1",
     "isparta": "^4.0.0",
     "jsdom": "^9.8.3",
@@ -58,8 +56,7 @@
     "react-addons-test-utils": "^0.14.8 || ^15.0.0",
     "react-dom": "^0.14.8 || ^15.0.0",
     "tape": "^4.5.1",
-    "webpack": "^2.2.1",
-    "webpack-dev-middleware": "^1.6.1"
+    "webpack": "^2.5.1"
   },
   "dependencies": {
     "invariant": "^2.0.0",
