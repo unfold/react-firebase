@@ -38,7 +38,7 @@ export default connect((props, ref) => ({
 
 ## Test for yourself on Codepen.io
 - [Get started template](https://codepen.io/einarlove/pen/peoMbp?editors=1010)
-- [Counter Example](https://codepen.io/einarlove/pen/RpwXGP?editors=1010)
+- [Counter example](https://codepen.io/einarlove/pen/RpwXGP?editors=1010)
 
 ## Usage
 
@@ -64,10 +64,6 @@ A React component class that passes subscriptions and actions as props to your c
 ##### Static Properties
 
 * `WrappedComponent` *(Component)*: The original component class passed to `connect()`.
-
-#### Examples
-
-> Runnable examples can be found in the [examples folder](examples/).
 
 ##### Pass `todos` as a prop
 
