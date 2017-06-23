@@ -91,7 +91,7 @@ export default connect(mapFirebaseToProps)(TodoApp)
 #####  Pass `todos`, `completedTodos`, a function that completes a todo (`completeTodo`) and one that logs in as props
 
 ```js
-const mapFirebaseToProps = (props, ref, { auth }) => ({
+const mapFirebaseToProps = (props, ref, firebase) => ({
   todos: 'todos',
   completedTodos: {
     path: 'todos',
@@ -99,7 +99,7 @@ const mapFirebaseToProps = (props, ref, { auth }) => ({
     equalTo: true
   },
   completeTodo = id => ref(`todos/${id}/completed`).set(true),
-  login: (email, password) => auth().signInWithEmailAndPassword(email, password)
+  login: (email, password) => firebase.auth().signInWithEmailAndPassword(email, password)
 })
 
 export default connect(mapFirebaseToProps)(TodoApp)
