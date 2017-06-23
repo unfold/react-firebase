@@ -90,24 +90,33 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
             queryKey.startsWith('orderBy')
           )
           const subscriptionRef = createQueryRef(this.ref(path), query)
-          const update = snapshot => {
-            if (this.mounted) {
-              const value = containsOrderBy ? mapSnapshotToValue(snapshot) : snapshot.val()
+          const onUpdate = snapshot => {
+            if (!this.mounted) return
 
-              this.setState(prevState => ({
-                subscriptionsState: {
-                  ...prevState.subscriptionsState,
-                  [key]: value,
-                },
-              }))
-            }
+            this.setState(prevState => ({
+              subscriptionsState: {
+                ...prevState.subscriptionsState,
+                [key]: containsOrderBy ? mapSnapshotToValue(snapshot) : snapshot.val(),
+              },
+            }))
           }
 
-          subscriptionRef.on('value', update)
+          const onError = error => {
+            if (!this.mounted) return
+
+            this.setState(prevState => ({
+              subscriptionsState: {
+                ...prevState.subscriptionsState,
+                [key]: error,
+              },
+            }))
+          }
+
+          subscriptionRef.on('value', onUpdate, onError)
 
           return {
             path,
-            unsubscribe: () => subscriptionRef.off('value', update),
+            unsubscribe: () => subscriptionRef.off('value', onUpdate),
           }
         })
 
