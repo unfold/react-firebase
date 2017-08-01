@@ -41,13 +41,23 @@ const renderStub = ({ mapFirebaseToProps, mergeProps, firebaseApp }, initialProp
   const wrappedComponent = findRenderedComponentWithType(parentComponent, WrappedComponent)
 
   return {
-    getSubscriptionState: () => connectedComponent.state.subscriptionsState,
+    getData: () => connectedComponent.state.data,
+    getErrors: () => connectedComponent.state.errors,
     getProps: () => wrappedComponent.props,
     getListeners: () => connectedComponent.listeners,
     setProps: props => parentComponent.setState({ childProps: props }),
     unmount: () => unmountComponentAtNode(findDOMNode(parentComponent).parentNode),
   }
 }
+
+const pickMessages = errors =>
+  Object.keys(errors).reduce(
+    (messages, key) => ({
+      ...messages,
+      [key]: errors[key].message,
+    }),
+    {},
+  )
 
 test('Should throw if no initialized Firebase app instance was found', assert => {
   const errorPattern = /No Firebase App/
@@ -86,9 +96,9 @@ test('Should subscribe to a single path', assert => {
 
       return mockDatabase
     },
-    on: (event, callback) => {
+    on: (event, onValue) => {
       assert.equal(event, 'value')
-      callback(createMockSnapshot({ bar: 'bar' }))
+      onValue(createMockSnapshot({ bar: 'bar' }))
     },
   }
 
@@ -96,7 +106,7 @@ test('Should subscribe to a single path', assert => {
   const firebaseApp = createMockApp(mockDatabase)
   const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(stub.getSubscriptionState(), { foo: { bar: 'bar' } })
+  assert.deepEqual(stub.getData(), { foo: { bar: 'bar' } })
   assert.deepEqual(stub.getProps().foo, { bar: 'bar' })
   assert.end()
 })
@@ -108,9 +118,9 @@ test('Should return null if a subscribed path does not exist', assert => {
 
       return mockDatabase
     },
-    on: (event, callback) => {
+    on: (event, onValue) => {
       assert.equal(event, 'value')
-      callback(createMockSnapshot(null))
+      onValue(createMockSnapshot(null))
     },
   }
 
@@ -118,7 +128,7 @@ test('Should return null if a subscribed path does not exist', assert => {
   const firebaseApp = createMockApp(mockDatabase)
   const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(stub.getSubscriptionState(), { foo: null })
+  assert.deepEqual(stub.getData(), { foo: null })
   assert.equal(stub.getProps().foo, null)
   assert.end()
 })
@@ -139,7 +149,7 @@ test('Should not pass unresolved subscriptions from result of mapFirebaseToProps
   const firebaseApp = createMockApp(mockDatabase)
   const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.equal(stub.getSubscriptionState(), null)
+  assert.deepEqual(stub.getData(), {})
   assert.equal(stub.getProps().foo, undefined)
   assert.end()
 })
@@ -162,9 +172,9 @@ test('Should subscribe to a query', assert => {
 
       return mockDatabase
     },
-    on: (event, callback) => {
+    on: (event, onValue) => {
       assert.equal(event, 'value')
-      callback(createMockSnapshot('bar value'))
+      onValue(createMockSnapshot('bar value'))
     },
   }
 
@@ -179,7 +189,7 @@ test('Should subscribe to a query', assert => {
   const firebaseApp = createMockApp(mockDatabase)
   const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(stub.getSubscriptionState(), { bar: 'bar value' })
+  assert.deepEqual(stub.getData(), { bar: 'bar value' })
   assert.equal(stub.getProps().bar, 'bar value')
   assert.end()
 })
@@ -196,7 +206,7 @@ test('Should correctly order subscription values if orderByChild was passed to q
 
       return mockDatabase
     },
-    on: (event, callback) => {
+    on: (event, onValue) => {
       assert.equal(event, 'value')
 
       const snapshot = {
@@ -213,7 +223,7 @@ test('Should correctly order subscription values if orderByChild was passed to q
         },
       }
 
-      callback(snapshot)
+      onValue(snapshot)
     },
   }
 
@@ -227,7 +237,7 @@ test('Should correctly order subscription values if orderByChild was passed to q
   const firebaseApp = createMockApp(mockDatabase)
   const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(Object.keys(stub.getSubscriptionState().bar), ['gamma', 'beta', 'alpha'])
+  assert.deepEqual(Object.keys(stub.getData().bar), ['gamma', 'beta', 'alpha'])
   assert.deepEqual(Object.keys(stub.getProps().bar), ['gamma', 'beta', 'alpha'])
   assert.end()
 })
@@ -241,7 +251,7 @@ test('Should not subscribe to functions', assert => {
   const firebaseApp = createMockApp()
   const stub = renderStub({ mapFirebaseToProps, firebaseApp })
 
-  assert.deepEqual(stub.getSubscriptionState(), { foo: 'foo value' })
+  assert.deepEqual(stub.getData(), { foo: 'foo value' })
   assert.equal(stub.getProps().foo, 'foo value')
   assert.equal(typeof stub.getProps().addFoo, 'function')
   assert.end()
@@ -254,9 +264,9 @@ test('Should unsubscribe when component unmounts', assert => {
 
       return mockDatabase
     },
-    on: (event, callback) => {
+    on: (event, onValue) => {
       assert.equal(event, 'value')
-      callback(createMockSnapshot('baz value'))
+      onValue(createMockSnapshot('baz value'))
     },
     off: event => {
       assert.equal(event, 'value')
@@ -322,12 +332,82 @@ test('Should update subscriptions when props change', assert => {
 })
 
 test('Should use custom mergeProps function if provided', assert => {
-  const mapFirebaseToProps = props => ({ foo: props.foo })
+  const mapFirebaseToProps = () => ({ foo: 'foo' })
   const mergeProps = () => ({ bar: 'bar merge props' })
 
   const firebaseApp = createMockApp()
-  const stub = renderStub({ mapFirebaseToProps, mergeProps, firebaseApp }, { foo: 'foo prop' })
+  const stub = renderStub({ mapFirebaseToProps, mergeProps, firebaseApp })
 
   assert.deepEqual(stub.getProps(), { bar: 'bar merge props' })
+  assert.end()
+})
+
+test('Should pass errors to custom mergeProps function', assert => {
+  const mockDatabase = {
+    ref: path => ({
+      on: (event, onValue, onError) => {
+        assert.equal(event, 'value')
+
+        if (path === 'foo') {
+          onError(new Error('foo error'))
+        } else {
+          onValue(createMockSnapshot('bar value'))
+        }
+      },
+    }),
+  }
+
+  const mapFirebaseToProps = () => ({ foo: 'foo', bar: 'bar value' })
+  const mergeProps = (ownProps, data, errors) => ({ ...data, ...pickMessages(errors) })
+
+  const firebaseApp = createMockApp(mockDatabase)
+  const stub = renderStub({ mapFirebaseToProps, mergeProps, firebaseApp })
+
+  assert.deepEqual(stub.getProps(), { foo: 'foo error', bar: 'bar value' })
+  assert.end()
+})
+
+test('Should warn on errors when mergeProps only has two arguments', assert => {
+  const mockDatabase = {
+    ref: path => {
+      assert.equal(path, 'foo')
+
+      return mockDatabase
+    },
+    on: (event, onValue, onError) => {
+      assert.equal(event, 'value')
+      onError(new Error('Permission denied'))
+    },
+  }
+
+  const mapFirebaseToProps = () => ({ foo: 'foo' })
+  const firebaseApp = createMockApp(mockDatabase)
+
+  const originalWarn = console.warn
+  console.warn = message => assert.equal(typeof message, 'string')
+  renderStub({ mapFirebaseToProps, firebaseApp })
+  console.warn = originalWarn
+
+  assert.end()
+})
+
+test('Should propagate errors from function props', assert => {
+  const mapFirebaseToProps = () => ({
+    foo: 'foo',
+    increment: () => ({
+      catch: reject => reject(new Error('increment error')),
+    }),
+  })
+
+  const mergeProps = (ownProps, data, errors) => ({ ...data, ...pickMessages(errors) })
+
+  const firebaseApp = createMockApp()
+  const stub = renderStub({ mapFirebaseToProps, mergeProps, firebaseApp })
+  const increment = stub.getProps().increment
+
+  assert.equal(typeof increment, 'function')
+  increment(1)
+
+  assert.deepEqual(stub.getProps(), { foo: 'foo value', increment: 'increment error' })
   assert.end()
 })

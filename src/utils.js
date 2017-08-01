@@ -30,7 +30,16 @@ export const createQueryRef = (ref, query) =>
 
 export const getDisplayName = Component => Component.displayName || Component.name || 'Component'
 
-export const mapSnapshotToValue = snapshot => {
+export const mapSubscriptionsToQueries = subscriptions =>
+  mapValues(subscriptions, value => (typeof value === 'string' ? { path: value } : value))
+
+const containsOrderBy = query => Object.keys(query).some(key => key.startsWith('orderBy'))
+
+export const mapQuerySnapshotToValue = (query, snapshot) => {
+  if (!containsOrderBy(query)) {
+    return snapshot.val()
+  }
+
   const result = {}
 
   snapshot.forEach(child => {
@@ -39,3 +48,14 @@ export const mapSnapshotToValue = snapshot => {
 
   return result
 }
+
+export const wrapActionProps = (props, onError) =>
+  mapValues(props, (value, key) => (...args) => {
+    const result = value(...args)
+
+    if (result && typeof result === 'object' && typeof result.catch === 'function') {
+      return result.catch(error => onError(key, error))
+    }
+
+    return result
+  })

@@ -3,19 +3,18 @@ import { Component, createElement } from 'react'
 import invariant from 'invariant'
 import firebase from 'firebase/app'
 import 'firebase/database'
-import { createQueryRef, getDisplayName, mapValues, mapSnapshotToValue, pickBy } from './utils'
+import {
+  createQueryRef,
+  getDisplayName,
+  mapValues,
+  mapSubscriptionsToQueries,
+  mapQuerySnapshotToValue,
+  pickBy,
+  wrapActionProps,
+} from './utils'
 
-const defaultMergeProps = (ownProps, firebaseProps) => ({
-  ...ownProps,
-  ...firebaseProps,
-})
-
-const mapSubscriptionsToQueries = subscriptions =>
-  mapValues(subscriptions, value => (typeof value === 'string' ? { path: value } : value))
-
-const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({
-  firebaseApp,
-})
+const defaultMergeProps = (ownProps, data) => ({ ...ownProps, ...data })
+const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({ firebaseApp })
 
 export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = defaultMergeProps) => {
   const mapFirebase = typeof mapFirebaseToProps === 'function'
@@ -26,13 +25,13 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
     const firebaseProps = mapFirebase(props, ref, firebaseApp)
     const subscriptions = pickBy(
       firebaseProps,
-      prop => typeof prop === 'string' || (prop && prop.path)
+      prop => typeof prop === 'string' || (prop && prop.path),
     )
 
     invariant(
       typeof subscriptions === 'object',
       '`mapFirebaseToProps` must return an object. Instead received %s.',
-      subscriptions
+      subscriptions,
     )
 
     return subscriptions
@@ -46,7 +45,8 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         this.firebaseApp = props.firebaseApp || context.firebaseApp || firebase.app()
         this.ref = path => this.firebaseApp.database().ref(path)
         this.state = {
-          subscriptionsState: null,
+          data: {},
+          errors: {},
         }
       }
 
@@ -64,7 +64,7 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
         const changedSubscriptions = pickBy(
           nextSubscriptions,
-          (path, key) => subscriptions[key] && subscriptions[key] !== path
+          (path, key) => subscriptions[key] && subscriptions[key] !== path,
         )
 
         this.unsubscribe({ ...removedSubscriptions, ...changedSubscriptions })
@@ -79,6 +79,32 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         }
       }
 
+      onValue(key, query, snapshot) {
+        if (!this.mounted) {
+          return
+        }
+
+        this.setState(prevState => ({
+          data: {
+            ...prevState.data,
+            [key]: mapQuerySnapshotToValue(query, snapshot),
+          },
+        }))
+      }
+
+      onError(key, error) {
+        if (mergeProps.length < 3) {
+          console.warn('Unhandled error')
+        } else {
+          this.setState(prevState => ({
+            errors: {
+              ...prevState.errors,
+              [key]: error,
+            },
+          }))
+        }
+      }
+
       subscribe(subscriptions) {
         if (Object.keys(subscriptions).length < 1) {
           return
@@ -86,28 +112,14 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
 
         const queries = mapSubscriptionsToQueries(subscriptions)
         const nextListeners = mapValues(queries, ({ path, ...query }, key) => {
-          const containsOrderBy = Object.keys(query).some(queryKey =>
-            queryKey.startsWith('orderBy')
-          )
+          const onValue = snapshot => this.onValue(key, query, snapshot)
+          const onError = error => this.onError(key, error)
           const subscriptionRef = createQueryRef(this.ref(path), query)
-          const update = snapshot => {
-            if (this.mounted) {
-              const value = containsOrderBy ? mapSnapshotToValue(snapshot) : snapshot.val()
-
-              this.setState(prevState => ({
-                subscriptionsState: {
-                  ...prevState.subscriptionsState,
-                  [key]: value,
-                },
-              }))
-            }
-          }
-
-          subscriptionRef.on('value', update)
+          subscriptionRef.on('value', onValue, onError)
 
           return {
             path,
-            unsubscribe: () => subscriptionRef.off('value', update),
+            unsubscribe: () => subscriptionRef.off('value', onValue),
           }
         })
 
@@ -120,28 +132,33 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         }
 
         const nextListeners = { ...this.listeners }
-        const nextSubscriptionsState = { ...this.state.subscriptionsState }
+        const nextData = { ...this.state.data }
+        const nextErrors = { ...this.state.errors }
 
         Object.keys(subscriptions).forEach(key => {
           const subscription = this.listeners[key]
           subscription.unsubscribe()
 
           delete nextListeners[key]
-          delete nextSubscriptionsState[key]
+          delete nextData[key]
+          delete nextErrors[key]
         })
 
         this.listeners = nextListeners
-        this.setState({ subscriptionsState: nextSubscriptionsState })
+        this.setState({ data: nextData, errors: nextErrors })
       }
 
       render() {
         const firebaseProps = mapFirebase(this.props, this.ref, this.firebaseApp)
-        const actionProps = pickBy(firebaseProps, prop => typeof prop === 'function')
-        const subscriptionProps = this.state.subscriptionsState
-        const props = mergeProps(this.props, {
-          ...actionProps,
-          ...subscriptionProps,
-        })
+        const actionProps = wrapActionProps(
+          pickBy(firebaseProps, prop => typeof prop === 'function'),
+          (key, error) => this.onError(key, error),
+        )
+        const props = mergeProps(
+          this.props,
+          { ...actionProps, ...this.state.data },
+          this.state.errors,
+        )
 
         return createElement(WrappedComponent, props)
       }
