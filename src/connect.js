@@ -93,6 +93,10 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
       }
 
       onError(key, error) {
+        if (!this.mounted) {
+          return
+        }
+
         if (mergeProps.length < 3) {
           console.warn('Unhandled error')
         } else {
