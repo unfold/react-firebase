@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unused-prop-types, react/sort-comp */
-
 import React from 'react'
 import PropTypes from 'prop-types'
 import Firebase from './Firebase'

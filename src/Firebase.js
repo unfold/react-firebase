@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unused-prop-types, react/sort-comp */
-
 import React from 'react'
 import firebase from 'firebase/app'
 import PropTypes from 'prop-types'
@@ -8,21 +6,22 @@ import { createQueryRef, mapValues, mapSnapshotToValue, pickBy } from './utils'
 const mapSubscriptionsToQueries = subscriptions =>
   mapValues(subscriptions, value => (typeof value === 'string' ? { path: value } : value))
 
-const getQuery = (props, ref) => {
+const getQuery = (props, ref, app) => {
   switch (typeof props.query) {
     case 'string':
       return { [props.query]: props.query }
     case 'function':
-      return props.query(ref)
+      return props.query(ref, app)
     default:
       return props.query
   }
 }
 
-const getSubscriptions = (props, ref) =>
-  pickBy(getQuery(props, ref), prop => typeof prop === 'string' || (prop && prop.path))
+const getSubscriptions = (props, ref, app) =>
+  pickBy(getQuery(props, ref, app), prop => typeof prop === 'string' || (prop && prop.path))
 
-const getActions = (props, ref) => pickBy(getQuery(props, ref), prop => typeof prop === 'function')
+const getActions = (props, ref, app) =>
+  pickBy(getQuery(props, ref, app), prop => typeof prop === 'function')
 
 export default class Firebase extends React.Component {
   static propTypes = {
@@ -40,18 +39,20 @@ export default class Firebase extends React.Component {
   }
 
   state = {
-    subscriptionsState: null,
+    subscriptionsState: {},
   }
 
   componentDidMount() {
     this.mounted = true
-    this.subscribe(getSubscriptions(this.props))
+    const subscriptions = getSubscriptions(this.props, this.getRef(), this.getFirebaseApp())
+    this.subscribe(subscriptions)
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
+    const app = this.getFirebaseApp(nextProps, nextContext)
     const ref = this.getRef(nextProps, nextContext)
-    const subscriptions = getSubscriptions(this.props, ref)
-    const nextSubscriptions = getSubscriptions(nextProps, ref)
+    const subscriptions = getSubscriptions(this.props, ref, app)
+    const nextSubscriptions = getSubscriptions(nextProps, ref, app)
     const addedSubscriptions = pickBy(nextSubscriptions, (path, key) => !subscriptions[key])
     const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
     const changedSubscriptions = pickBy(
@@ -68,6 +69,25 @@ export default class Firebase extends React.Component {
 
     if (this.listeners) {
       this.unsubscribe(this.listeners)
+    }
+  }
+
+  getRef(props, context) {
+    return path => this.getFirebaseApp(props, context).database().ref(path)
+  }
+
+  getFirebaseApp(props = this.props, context = this.context) {
+    return props.firebaseApp || context.firebaseApp || firebase.app()
+  }
+
+  getFirebaseProps() {
+    if (typeof this.props.query === 'string') {
+      return this.state.subscriptionsState[this.props.query]
+    }
+
+    return {
+      ...getActions(this.props, this.getRef(), this.getFirebaseApp()),
+      ...this.state.subscriptionsState,
     }
   }
 
@@ -124,24 +144,7 @@ export default class Firebase extends React.Component {
     this.setState({ subscriptionsState: nextSubscriptionsState })
   }
 
-  getRef(props, context) {
-    return path => this.getFirebaseApp(props, context).database().ref(path)
-  }
-
-  getFirebaseApp(props = this.props, context = this.context) {
-    return props.firebaseApp || context.firebaseApp || firebase.app()
-  }
-
   render() {
-    const firebaseProps = {
-      ...getActions(this.props, this.getRef()),
-      ...this.state.subscriptionsState,
-    }
-
-    if (this.props.render) {
-      return this.props.render(firebaseProps)
-    }
-
-    return null
+    return this.props.render(this.getFirebaseProps())
   }
 }
