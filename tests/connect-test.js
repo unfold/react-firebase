@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-extraneous-dependencies, react/no-find-dom-node */
 
 import 'jsdom-global/register'
 import React, { Component } from 'react'

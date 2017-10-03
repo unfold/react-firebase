@@ -20,7 +20,7 @@ test('Should use firebaseApp from context if provided', assert => {
   const container = renderIntoDocument(
     <Provider firebaseApp={firebaseApp}>
       <WrappedComponent />
-    </Provider>
+    </Provider>,
   )
 
   const stub = findRenderedComponentWithType(container, WrappedComponent)

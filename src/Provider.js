@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import { Component, Children } from 'react'
+import firebase from 'firebase/app'
 
 export default class Provider extends Component {
   static propTypes = {
@@ -8,7 +9,7 @@ export default class Provider extends Component {
   }
 
   static childContextTypes = {
-    firebaseApp: PropTypes.object,
+    firebaseApp: PropTypes.instanceOf(firebase.app.App),
   }
 
   getChildContext() {

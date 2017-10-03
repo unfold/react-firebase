@@ -44,7 +44,7 @@ webpack(
         chunks: false,
         version: false,
         hash: false,
-      })
+      }),
     )
-  }
+  },
 )

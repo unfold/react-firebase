@@ -27,15 +27,11 @@ export default class Firebase extends React.Component {
   static propTypes = {
     render: PropTypes.func.isRequired,
     query: PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]).isRequired,
-    firebaseApp: PropTypes.shape({
-      database: PropTypes.func.isRequired,
-    }),
+    firebaseApp: PropTypes.instanceOf(firebase.app.App), // eslint-disable-line react/no-unused-prop-types
   }
 
   static contextTypes = {
-    firebaseApp: PropTypes.shape({
-      database: PropTypes.func.isRequired,
-    }),
+    firebaseApp: PropTypes.instanceOf(firebase.app.App),
   }
 
   state = {
@@ -57,7 +53,7 @@ export default class Firebase extends React.Component {
     const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
     const changedSubscriptions = pickBy(
       nextSubscriptions,
-      (path, key) => subscriptions[key] && subscriptions[key] !== path
+      (path, key) => subscriptions[key] && subscriptions[key] !== path,
     )
 
     this.unsubscribe({ ...removedSubscriptions, ...changedSubscriptions })
@@ -73,7 +69,10 @@ export default class Firebase extends React.Component {
   }
 
   getRef(props, context) {
-    return path => this.getFirebaseApp(props, context).database().ref(path)
+    return path =>
+      this.getFirebaseApp(props, context)
+        .database()
+        .ref(path)
   }
 
   getFirebaseApp(props = this.props, context = this.context) {
