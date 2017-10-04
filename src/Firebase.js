@@ -26,7 +26,8 @@ const getActions = (props, ref, app) =>
 export default class Firebase extends React.Component {
   static propTypes = {
     render: PropTypes.func.isRequired,
-    query: PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]).isRequired,
+    query: PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]),
+    children: PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]),
     firebaseApp: PropTypes.instanceOf(firebase.app.App), // eslint-disable-line react/no-unused-prop-types
   }
 
@@ -36,6 +37,7 @@ export default class Firebase extends React.Component {
 
   state = {
     subscriptionsState: {},
+    connected: false,
   }
 
   componentDidMount() {
@@ -104,6 +106,7 @@ export default class Firebase extends React.Component {
           const value = containsOrderBy ? mapSnapshotToValue(snapshot) : snapshot.val()
 
           this.setState(prevState => ({
+            connected: true,
             subscriptionsState: {
               ...prevState.subscriptionsState,
               [key]: value,
@@ -144,6 +147,12 @@ export default class Firebase extends React.Component {
   }
 
   render() {
-    return this.props.render(this.getFirebaseProps())
+    if (this.state.connected && this.props.render) {
+      return this.props.render(this.getFirebaseProps())
+    } else if (this.props.children) {
+      return this.props.children(this.getFirebaseProps())
+    }
+
+    return null
   }
 }
