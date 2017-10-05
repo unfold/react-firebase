@@ -6,3 +6,4 @@ node_modules/
 /utils.js
 /umd.js
 /Firebase.js
+/withFirebase.js

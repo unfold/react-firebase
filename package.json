@@ -7,13 +7,15 @@
   "scripts": {
     "lint": "eslint '{src,scripts,tests}/**/*.js'",
     "test": "node -r babel-register $(npm bin)/tape tests/**/*-test.js",
-    "test:coverage": "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js",
+    "test:coverage":
+      "node -r babel-register $(npm bin)/isparta cover $(npm bin)/tape -- src/**/*-test.js",
     "clean": "node -e 'console.log(require(\"./package\").files.join(\"\\n\"))' | xargs rm",
     "build": "babel src --ignore tests --out-dir .",
     "postbuild": "node -r babel-register scripts/build-umd.js",
     "prepublish": "npm run build",
     "postpublish": "npm run clean",
-    "format": "prettier --trailing-comma all --single-quote --no-semi --print-width 100 --write {src,scripts,tests}/**/*.js",
+    "format":
+      "prettier --trailing-comma all --single-quote --no-semi --print-width 100 --write {src,scripts,tests}/**/*.js",
     "precommit": "lint-staged"
   },
   "unpkg": "umd.js",
@@ -27,16 +29,13 @@
   "files": [
     "index.js",
     "Firebase.js",
+    "withFirebase.js",
     "Provider.js",
     "connect.js",
     "utils.js",
     "umd.js"
   ],
-  "keywords": [
-    "react",
-    "reactjs",
-    "firebase"
-  ],
+  "keywords": ["react", "reactjs", "firebase"],
   "lint-staged": {
     "{src,scripts,tests}/**/*.js": [
       "prettier --trailing-comma all --single-quote --no-semi --print-width 100 --write",
