@@ -3,31 +3,22 @@ import firebase from 'firebase/app'
 import PropTypes from 'prop-types'
 import { createQueryRef, mapValues, mapSnapshotToValue, pickBy } from './utils'
 
-const mapSubscriptionsToQueries = subscriptions =>
-  mapValues(subscriptions, value => (typeof value === 'string' ? { path: value } : value))
-
-const getQuery = (props, ref, app) => {
-  switch (typeof props.query) {
-    case 'string':
-      return { [props.query]: props.query }
-    case 'function':
-      return props.query(ref, app)
-    default:
-      return props.query
+const getSubscriptions = props => {
+  if (typeof props.query === 'string') {
+    return { [props.query]: { path: props.query } }
   }
+  if (!props.query) {
+    return {}
+  }
+
+  return mapValues(props.query, value => (typeof value === 'string' ? { path: value } : value))
 }
-
-const getSubscriptions = (props, ref, app) =>
-  pickBy(getQuery(props, ref, app), prop => typeof prop === 'string' || (prop && prop.path))
-
-const getActions = (props, ref, app) =>
-  pickBy(getQuery(props, ref, app), prop => typeof prop === 'function')
 
 export default class Firebase extends React.Component {
   static propTypes = {
-    render: PropTypes.func.isRequired,
+    render: PropTypes.func,
+    children: PropTypes.func,
     query: PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]),
-    children: PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]),
     firebaseApp: PropTypes.instanceOf(firebase.app.App), // eslint-disable-line react/no-unused-prop-types
   }
 
@@ -42,20 +33,18 @@ export default class Firebase extends React.Component {
 
   componentDidMount() {
     this.mounted = true
-    const subscriptions = getSubscriptions(this.props, this.getRef(), this.getFirebaseApp())
-    this.subscribe(subscriptions)
+    this.subscribe(getSubscriptions(this.props))
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
-    const app = this.getFirebaseApp(nextProps, nextContext)
-    const ref = this.getRef(nextProps, nextContext)
-    const subscriptions = getSubscriptions(this.props, ref, app)
-    const nextSubscriptions = getSubscriptions(nextProps, ref, app)
+    const ref = this.getFirebaseRef(nextProps, nextContext)
+    const subscriptions = getSubscriptions(this.props)
+    const nextSubscriptions = getSubscriptions(nextProps)
     const addedSubscriptions = pickBy(nextSubscriptions, (path, key) => !subscriptions[key])
     const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
     const changedSubscriptions = pickBy(
       nextSubscriptions,
-      (path, key) => subscriptions[key] && subscriptions[key] !== path,
+      (subscription, key) => subscriptions[key] && subscriptions[key].path !== subscription.path,
     )
 
     this.unsubscribe({ ...removedSubscriptions, ...changedSubscriptions })
@@ -70,7 +59,7 @@ export default class Firebase extends React.Component {
     }
   }
 
-  getRef(props, context) {
+  getFirebaseRef(props, context) {
     return path =>
       this.getFirebaseApp(props, context)
         .database()
@@ -86,19 +75,15 @@ export default class Firebase extends React.Component {
       return this.state.subscriptionsState[this.props.query]
     }
 
-    return {
-      ...getActions(this.props, this.getRef(), this.getFirebaseApp()),
-      ...this.state.subscriptionsState,
-    }
+    return this.state.subscriptionsState
   }
 
-  subscribe(subscriptions, ref = this.getRef()) {
+  subscribe(subscriptions, ref = this.getFirebaseRef()) {
     if (Object.keys(subscriptions).length < 1) {
       return
     }
 
-    const queries = mapSubscriptionsToQueries(subscriptions)
-    const nextListeners = mapValues(queries, ({ path, ...query }, key) => {
+    const nextListeners = mapValues(subscriptions, ({ path, ...query }, key) => {
       const containsOrderBy = Object.keys(query).some(queryKey => queryKey.startsWith('orderBy'))
       const subscriptionRef = createQueryRef(ref(path), query)
       const update = snapshot => {
@@ -148,9 +133,17 @@ export default class Firebase extends React.Component {
 
   render() {
     if (this.state.connected && this.props.render) {
-      return this.props.render(this.getFirebaseProps())
+      return this.props.render(
+        this.getFirebaseProps(),
+        this.getFirebaseRef(),
+        this.getFirebaseApp(),
+      )
     } else if (this.props.children) {
-      return this.props.children(this.getFirebaseProps())
+      return this.props.children(
+        this.getFirebaseProps(),
+        this.getFirebaseRef(),
+        this.getFirebaseApp(),
+      )
     }
 
     return null

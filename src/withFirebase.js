@@ -5,20 +5,19 @@ import Firebase from './Firebase'
 import { getDisplayName } from './utils'
 
 export default WrappedComponent => {
-  const FirebaseConnect = props => (
-    <Firebase
-      firebaseApp={props.firebaseApp}
-      render={(firebaseProps, ref, firebaseApp) => (
-        <WrappedComponent firebaseApp={firebaseApp} ref={ref} {...props} />
+  const WithFirebase = props => (
+    <Firebase firebaseApp={props.firebaseApp}>
+      {(firebaseProps, firebaseRef, firebaseApp) => (
+        <WrappedComponent firebaseApp={firebaseApp} firebaseRef={firebaseRef} {...props} />
       )}
-    />
+    </Firebase>
   )
 
-  FirebaseConnect.WrappedComponent = WrappedComponent
-  FirebaseConnect.displayName = `FirebaseConnect(${getDisplayName(WrappedComponent)})`
-  FirebaseConnect.propTypes = {
+  WithFirebase.WrappedComponent = WrappedComponent
+  WithFirebase.displayName = `WithFirebase(${getDisplayName(WrappedComponent)})`
+  WithFirebase.propTypes = {
     firebaseApp: PropTypes.instanceOf(firebase.app.App),
   }
 
-  return FirebaseConnect
+  return WithFirebase
 }
