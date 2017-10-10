@@ -4,17 +4,21 @@ import firebase from 'firebase/app'
 import Firebase from './Firebase'
 import { getDisplayName } from './utils'
 
-const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({
-  firebaseApp,
-})
-
-export default (mapFirebaseToProps = defaultMapFirebaseToProps) => WrappedComponent => {
+export default query => WrappedComponent => {
   const FirebaseConnect = props => (
     <Firebase
       firebaseApp={props.firebaseApp}
-      query={mapFirebaseToProps}
-      render={firebaseProps => <WrappedComponent {...firebaseProps} {...props} />}
-    />
+      query={typeof query === 'function' ? query(props) : query}
+    >
+      {(firebaseProps, firebaseRef, firebaseApp) => (
+        <WrappedComponent
+          {...firebaseProps}
+          firebaseRef={firebaseRef}
+          firebaseApp={firebaseApp}
+          {...props}
+        />
+      )}
+    </Firebase>
   )
 
   FirebaseConnect.WrappedComponent = WrappedComponent
