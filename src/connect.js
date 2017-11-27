@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import { Component, createElement } from 'react'
-import invariant from 'invariant'
 import firebase from 'firebase/app'
 import 'firebase/database'
 import shallowEqual from 'shallowequal'
@@ -19,23 +18,25 @@ const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({
 })
 
 export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = defaultMergeProps) => {
-  const mapFirebase =
-    typeof mapFirebaseToProps === 'function' ? mapFirebaseToProps : () => mapFirebaseToProps
+  const mapFirebase = (...args) => {
+    if (typeof mapFirebaseToProps !== 'function') {
+      return mapFirebaseToProps
+    }
+
+    const firebaseProps = mapFirebaseToProps(...args)
+
+    if (firebaseProps === null || typeof firebaseProps !== 'object') {
+      throw new Error(
+        `react-firebase: mapFirebaseToProps must return an object. Instead received ${firebaseProps}.`
+      )
+    }
+
+    return firebaseProps
+  }
 
   const computeSubscriptions = (props, ref, firebaseApp) => {
     const firebaseProps = mapFirebase(props, ref, firebaseApp)
-    const subscriptions = pickBy(
-      firebaseProps,
-      prop => typeof prop === 'string' || (prop && prop.path)
-    )
-
-    invariant(
-      typeof subscriptions === 'object',
-      '`mapFirebaseToProps` must return an object. Instead received %s.',
-      subscriptions
-    )
-
-    return subscriptions
+    return pickBy(firebaseProps, prop => typeof prop === 'string' || (prop && prop.path))
   }
 
   return WrappedComponent => {

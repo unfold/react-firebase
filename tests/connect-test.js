@@ -79,6 +79,16 @@ test('Should throw if no initialized Firebase app instance was found', assert =>
   assert.end()
 })
 
+test('Should throw if mapFirebaseToProps does not return an object', assert => {
+  const errorPattern = /mapFirebaseToProps must return an object/
+
+  assert.throws(() => {
+    renderStub({ mapFirebaseToProps: () => null })
+  }, errorPattern)
+
+  assert.end()
+})
+
 test('Should subscribe to a single path', assert => {
   const mockDatabase = {
     ref: path => {

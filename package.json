@@ -69,7 +69,6 @@
     "webpack": "^2.5.1"
   },
   "dependencies": {
-    "invariant": "^2.0.0",
     "prop-types": "^15.5.8",
     "shallowequal": "^1.0.2"
   },
