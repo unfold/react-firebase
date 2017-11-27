@@ -70,7 +70,8 @@
   },
   "dependencies": {
     "invariant": "^2.0.0",
-    "prop-types": "^15.5.8"
+    "prop-types": "^15.5.8",
+    "shallowequal": "^1.0.2"
   },
   "peerDependencies": {
     "firebase": "^3.6.1 || ^4.0.0",

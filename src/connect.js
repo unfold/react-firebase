@@ -3,7 +3,8 @@ import { Component, createElement } from 'react'
 import invariant from 'invariant'
 import firebase from 'firebase/app'
 import 'firebase/database'
-import { createQueryRef, getDisplayName, mapValues, mapSnapshotToValue, pickBy } from './utils'
+import shallowEqual from 'shallowequal'
+import { createQueryRef, getDisplayName, mapValues, pickBy, mapSnapshotToValue } from './utils'
 
 const defaultMergeProps = (ownProps, firebaseProps) => ({
   ...ownProps,
@@ -18,9 +19,8 @@ const defaultMapFirebaseToProps = (props, ref, firebaseApp) => ({
 })
 
 export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = defaultMergeProps) => {
-  const mapFirebase = typeof mapFirebaseToProps === 'function'
-    ? mapFirebaseToProps
-    : () => mapFirebaseToProps
+  const mapFirebase =
+    typeof mapFirebaseToProps === 'function' ? mapFirebaseToProps : () => mapFirebaseToProps
 
   const computeSubscriptions = (props, ref, firebaseApp) => {
     const firebaseProps = mapFirebase(props, ref, firebaseApp)
@@ -64,7 +64,7 @@ export default (mapFirebaseToProps = defaultMapFirebaseToProps, mergeProps = def
         const removedSubscriptions = pickBy(subscriptions, (path, key) => !nextSubscriptions[key])
         const changedSubscriptions = pickBy(
           nextSubscriptions,
-          (path, key) => subscriptions[key] && subscriptions[key] !== path
+          (path, key) => subscriptions[key] && !shallowEqual(subscriptions[key], path)
         )
 
         this.unsubscribe({ ...removedSubscriptions, ...changedSubscriptions })

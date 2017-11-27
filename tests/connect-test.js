@@ -321,6 +321,114 @@ test('Should update subscriptions when props change', assert => {
   assert.end()
 })
 
+test('Should not update subscriptions when unrelated props change', assert => {
+  const counters = { ref: 0, orderByChild: 0, equalTo: 0, on: 0, off: 0, forEach: 0, val: 0 }
+
+  const mockDatabase = {
+    ref: path => {
+      counters.ref += 1
+      assert.equal(path, path === 'bar' ? 'bar' : 'dinossaurs')
+      return mockDatabase
+    },
+    orderByChild: value => {
+      counters.orderByChild += 1
+      assert.equal(value, 'name')
+      return mockDatabase
+    },
+    equalTo: () => {
+      counters.equalTo += 1
+      return mockDatabase
+    },
+    on: (event, callback) => {
+      counters.on += 1
+      assert.equal(event, 'value')
+
+      const snapshot = {
+        val: () => {
+          counters.val += 1
+          return 'bar'
+        },
+        forEach: iterator => {
+          counters.forEach += 1
+          iterator({ key: 'a', val: () => ({ name: 'Alfred', short: 'alfie' }) })
+          iterator({ key: 'f', val: () => ({ name: 'Frederick', short: 'fred' }) })
+          iterator({ key: 't', val: () => ({ name: 'Timmoty', short: 'timmy' }) })
+        },
+      }
+
+      callback(snapshot)
+    },
+    off: () => {
+      counters.off += 1
+    },
+  }
+  const mapFirebaseToProps = props => ({
+    bar: 'bar',
+    result: {
+      path: 'dinossaurs',
+      orderByChild: 'name',
+      equalTo: props.name,
+    },
+  })
+  const firebaseApp = createMockApp(mockDatabase)
+  const stub = renderStub({ mapFirebaseToProps, firebaseApp })
+
+  assert.equal(counters.ref, 2)
+  assert.equal(counters.on, 2)
+  assert.equal(counters.off, 0)
+  assert.equal(counters.orderByChild, 1)
+  assert.equal(counters.equalTo, 1)
+  assert.equal(counters.forEach, 1)
+  assert.equal(counters.val, 1)
+
+  stub.setProps({ name: 'Frederick' })
+  assert.equal(counters.ref, 3)
+  assert.equal(counters.on, 3)
+  assert.equal(counters.off, 1)
+  assert.equal(counters.orderByChild, 2)
+  assert.equal(counters.equalTo, 2)
+  assert.equal(counters.forEach, 2)
+  assert.equal(counters.val, 1)
+
+  stub.setProps({ name: 'Frederick', unrelated: 'bar' })
+  assert.equal(counters.ref, 3)
+  assert.equal(counters.on, 3)
+  assert.equal(counters.off, 1)
+  assert.equal(counters.orderByChild, 2)
+  assert.equal(counters.equalTo, 2)
+  assert.equal(counters.forEach, 2)
+  assert.equal(counters.val, 1)
+
+  stub.setProps({ name: 'Frederick' })
+  assert.equal(counters.ref, 3)
+  assert.equal(counters.on, 3)
+  assert.equal(counters.off, 1)
+  assert.equal(counters.orderByChild, 2)
+  assert.equal(counters.equalTo, 2)
+  assert.equal(counters.forEach, 2)
+  assert.equal(counters.val, 1)
+
+  stub.setProps({ name: 'baz' })
+  assert.equal(counters.ref, 4)
+  assert.equal(counters.on, 4)
+  assert.equal(counters.off, 2)
+  assert.equal(counters.orderByChild, 3)
+  assert.equal(counters.equalTo, 3)
+  assert.equal(counters.forEach, 3)
+  assert.equal(counters.val, 1)
+
+  stub.setProps({ name: 'Timmoty', unrelated: 'foo' })
+  assert.equal(counters.ref, 5)
+  assert.equal(counters.on, 5)
+  assert.equal(counters.off, 3)
+  assert.equal(counters.orderByChild, 4)
+  assert.equal(counters.equalTo, 4)
+  assert.equal(counters.forEach, 4)
+  assert.equal(counters.val, 1)
+
+  assert.end()
+})
+
 test('Should use custom mergeProps function if provided', assert => {
   const mapFirebaseToProps = props => ({ foo: props.foo })
   const mergeProps = () => ({ bar: 'bar merge props' })
