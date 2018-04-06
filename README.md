@@ -1,3 +1,5 @@
+_NOTE: If you're looking for Firestore support it's on our roadmap but is currently not being worked on. Please see [the following issue](https://github.com/unfold/react-firebase/issues/50) and contribute if you can!_
+
 React Firebase
 ==============
 
