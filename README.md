@@ -1,9 +1,12 @@
-_NOTE: If you're looking for Firestore support it's on our roadmap but is currently not being worked on. Please see [the following issue](https://github.com/unfold/react-firebase/issues/50) and contribute if you can!_
-
 React Firebase
 ==============
 
 React bindings for [Firebase](https://firebase.google.com).
+
+
+__:warning: React Firebase in not maintained anymore__
+> There might come a replacement from [React itself](
+https://github.com/unfold/react-firebase/issues/57#issuecomment-644762819) with Suspense, but when is not certain. If you want to contribute or maintain this project, send a message to @einarlove.
 
 ## Installation
 
